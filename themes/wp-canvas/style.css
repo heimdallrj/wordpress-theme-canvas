@@ -1,0 +1,68 @@
+/*   
+Theme Name: <wp-canvas>
+Theme URI: <theme URI>
+Description: <This is just a BLANK starter WordPress Theme template -- WordPress v3.5+
+Author: @_thinkholic
+Author URI: http://www.github.com/thinkholic/
+Version: 0.2
+*/
+
+/* =Reset default browser CSS. **
+------------------------------------------------------ */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {background: transparent; border: 0; margin: 0; padding: 0; vertical-align: baseline;}
+
+body {line-height: 1;}
+
+h1, h2, h3, h4, h5, h6 {clear: both; font-weight: normal;}
+
+ol, ul {list-style: none;}
+
+blockquote {quotes: none;}
+blockquote:before, blockquote:after {content: ''; content: none;}
+
+del {text-decoration: line-through;}
+strong {font-weight:bold;}
+em {font-style:italic;}
+
+/* tables still need 'cellspacing="0"' in the markup */
+table {border-collapse: collapse; border-spacing: 0;}
+
+a {text-decoration:none;}
+a img {border: none;}
+
+/* =WordPress Core
+-------------------------------------------------------------- */
+.alignnone {margin: 6px 30px 30px 0;}
+.alignright {float:right; margin: 6px 0 30px 35px;}
+.alignleft {float: left; margin: 6px 35px 30px 0;}
+.aligncenter, div.aligncenter {display: block; margin: 6px auto 6px auto;}
+
+a img.alignright {float: right; margin: 5px 0 20px 20px;}
+a img.alignnone {margin: 5px 20px 20px 0;}
+a img.alignleft {float: left; margin: 5px 20px 20px 0;}
+a img.aligncenter {display: block; margin-left: auto; margin-right: auto;}
+
+.wp-caption {background: #fff; border: 1px solid #f0f0f0; max-width: 96%; /* Image does not overflow the content area */ padding: 5px 3px 10px; text-align: center; }
+.wp-caption.alignnone {margin: 5px 20px 20px 0;}
+.wp-caption.alignleft {margin: 5px 20px 20px 0;}
+.wp-caption.alignright {margin: 5px 0 20px 20px;}
+.wp-caption img {border: 0 none; height: auto; margin: 0; max-width: 98.5%; padding: 0; width: auto;}
+.wp-caption p.wp-caption-text {font-size: 11px; line-height: 17px; margin: 0; padding: 0 4px 5px;}
+
+/* =Basic styles 
+--------------------------------------------------------------- */
+body {}
+h1, h2, h3, h4, h5, h6 {}
+ol, ul {}
+table {}
+a {}
+a img {}
+a:hover {}
