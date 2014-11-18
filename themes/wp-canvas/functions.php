@@ -16,10 +16,10 @@
     remove_action('wp_head', 'wp_generator');
 	
 	/* Remove WP version no */
-	function devart_remove_version() {
+	function th_remove_version() {
 		return '';
 	}
-	add_filter('the_generator', 'devart_remove_version');
+	add_filter('the_generator', 'th_remove_version');
     
 	/**
 	 * Include custom functions set
