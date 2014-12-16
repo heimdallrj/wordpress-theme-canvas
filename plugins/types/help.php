@@ -1,6 +1,12 @@
 <?php
 /*
  * Plugin contextual help
+ *
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/help.php $
+ * $LastChangedDate: 2014-05-29 08:44:10 +0000 (Thu, 29 May 2014) $
+ * $LastChangedRevision: 922956 $
+ * $LastChangedBy: iworks $
+ *
  */
 
 /**
@@ -16,7 +22,7 @@ function wpcf_admin_help($page, $contextual_help) {
         case 'custom_fields':
             $help .= ''
                     . ''
-                    . __("Custom Fields (also known as post-meta) are information attached to WordPress posts. This data can then be queried and filtered in your database. With Types you can create Custom Field Groups which are then attached to any post type (including Posts, Pages and Custom Post Types) or taxonomy.",
+                    . __("Types plugin organizes custom fields in groups. Once you create a group, you can add the fields to it and control to what content it belongs.",
                             'wpcf')
                     . '<br /><br />'
                     . sprintf(__('You can read more about Custom Fields in this tutorial: %s.', 

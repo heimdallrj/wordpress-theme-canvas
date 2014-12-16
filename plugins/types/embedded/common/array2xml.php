@@ -29,6 +29,7 @@ if (!class_exists('ICL_Array2XML')) {
                 unset($array['__key']);
             }
             foreach ($array as $key => $value) {
+                $key = str_replace(' ', '___032___', $key); // encode spaces
                 if (!is_array($value)) {
                     if (empty($key)) {
                         continue;

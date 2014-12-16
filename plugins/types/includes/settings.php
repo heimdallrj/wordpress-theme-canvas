@@ -56,7 +56,7 @@ function wpcf_admin_image_settings_form() {
         '#name' => 'clear-cache-images',
         '#id' => 'clear-cache-images',
         '#attributes' => array('id' => 'clear-cache-images','class' => 'button-secondary'),
-        '#value' => __('Clear Images', 'wpcf'),
+        '#value' => __('Clear Cached Images', 'wpcf'),
         '#after' => '&nbsp;',
         '#inline' => true,
     );
@@ -65,7 +65,7 @@ function wpcf_admin_image_settings_form() {
         '#type' => 'submit',
         '#name' => 'clear-cache-images-outdated',
         '#attributes' => array('id' => 'clear-cache-images-outdated','class' => 'button-secondary'),
-        '#value' => __('Clear Outdated Images', 'wpcf'),
+        '#value' => __('Clear Outdated Cached Images', 'wpcf'),
 //        '#suffix' => '&nbsp;' . __('Clear the image cache now.', 'wpcf'),
         '#after' => '<br /><br />',
         '#inline' => true,

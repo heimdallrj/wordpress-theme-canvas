@@ -1,11 +1,11 @@
-/* ================================================================ 
-This copyright notice must be kept untouched in the stylesheet at 
+/* ================================================================
+This copyright notice must be kept untouched in the stylesheet at
 all times.
 
 The original version of this stylesheet and the associated (x)html
 is available at http://www.stunicholls.com/menu/pro_drop_2.html
 Copyright (c) 2005-2007 Stu Nicholls. All rights reserved.
-This stylesheet and the associated (x)html may be modified in any 
+This stylesheet and the associated (x)html may be modified in any
 way to fit your requirements.
 =================================================================== */
 
@@ -29,7 +29,7 @@ way to fit your requirements.
 {display:block; font-size:11px; height:18px; width:88px; line-height:18px; text-indent:5px; color:#000; text-decoration:none;}
 #editor_addon li ul.sub li a.fly
 {background:#ffffff url(../img/arrow.gif) 80px 6px no-repeat;}
-#editor_addon li:hover ul.sub li a:hover 
+#editor_addon li:hover ul.sub li a:hover
 {background:#6a812c; color:#fff; border-color:#fff;}
 #editor_addon li:hover ul.sub li a.fly:hover
 {background:#6a812c url(../img/arrow_over.gif) 80px 6px no-repeat; color:#fff;}
@@ -41,7 +41,7 @@ way to fit your requirements.
 #editor_addon li:hover li:hover li:hover li:hover li:hover ul
 {left:90px; top:-4px; background: #ffffff; padding:3px; border:1px solid #5c731e; white-space:nowrap; width:90px; z-index:400; height:auto;}
 
-#editor_addon ul, 
+#editor_addon ul,
 #editor_addon li:hover ul ul,
 #editor_addon li:hover li:hover ul ul,
 #editor_addon li:hover li:hover li:hover ul ul,
@@ -52,7 +52,7 @@ way to fit your requirements.
 #editor_addon li:hover li:hover li:hover a.fly,
 #editor_addon li:hover li:hover li:hover li:hover a.fly,
 #editor_addon li:hover li:hover li:hover li:hover li:hover a.fly
-{background:#ffffff url(../img/arrow_over.gif) 80px 6px no-repeat; color:#000; border-color:#fff;} 
+{background:#ffffff url(../img/arrow_over.gif) 80px 6px no-repeat; color:#000; border-color:#fff;}
 
 #editor_addon li:hover li:hover li a.fly,
 #editor_addon li:hover li:hover li:hover li a.fly,
@@ -64,79 +64,76 @@ way to fit your requirements.
     width: 20px;
 }
 
-.editor_addon_wrapper li {
-    display: inline;
-    width: 20px;
-}
-
+.wp-media-buttons .wpv-shortcode-post-icon,
 .editor_addon_wrapper img {
     margin: 0 2px;
     cursor: pointer;
-    display: inline;
+    display: inline-block;
 }
 
-.editor_addon_dropdown {
-    display: inline;
-    visibility: hidden;
+.editor_addon_dropdown,
+#poststuff .editor_addon_dropdown {
+    display: block;
     position: absolute;
-    background-color: #FFFFFF;
-    border: 1px solid #CCCCCC;
-    padding: 0;
     z-index: 99;
-    width: auto;
-    height: auto;
-    margin-top: 22px;
-    margin-left: -16px;
-    margin-right: 30px;
+    visibility: hidden;
     overflow: hidden;
+    margin: 20px 0 0 20px;
+    padding: 0;
+    width: 600px;
+    border: 0;
+    background: #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,.3);
+    text-align: left;
+    cursor: default;
+}
+.editor_addon_dropdown_content{
+    padding: 0 10px;
+    max-height: 400px;
+    overflow: auto;
 }
 
 .editor_addon_dropdown ul {
     list-style: none inside none;
 }
 
-.editor_addon_dropdown li {
-    padding: 5px 20px 20px 20px;
-    margin: 0;
-    display: block;
-    width: auto;
-}
-
-.editor_addon_dropdown li:first-child {
-    padding: 5px 10px;
-    margin: 0;
-    background-color: #EFEFEF;
-    width: auto;
-}
-
+#poststuff .editor_addon_dropdown .title,
 .editor_addon_dropdown .title {
-    font-weight: bold;
-    width: 200px;
+    margin: 0;
+    padding: 10px 20px 10px 10px;
+    border: 1px solid #ededed;
+    background: #fafafa;
+    font-weight: normal;
+    font-size: 14px;
 }
 
 .editor_addon_dropdown .close {
     width: 11px;
     height: 11px;
-    background-image: url(../img/close_icon.gif);
-    float: right;
-    margin: -15px -5px 0 0;
+    background-image: url('../img/ico-close.png');
+    position: absolute;
+    top: 13px;
+    right: 10px;
     cursor: pointer;
+    opacity: .6;
+}
+.editor_addon_dropdown .close:hover {
+    opacity: 1;
 }
 
-.editor_addon_dropdown .scroll {
+/*.editor_addon_dropdown .scroll {
     width: 100%;
     height: auto;
     overflow: auto;
     overflow-x: hidden;
     -ms-overflow-x: hidden;
-}
+}*/
 
-.editor_addon_dropdown .scroll .wrapper {
+/*.editor_addon_dropdown .scroll .wrapper {
     position: relative;
-}
+}*/
 
 .editor_addon_dropdown .group-title {
-    font-weight: bold;
 }
 
 .editor-addon-link-to-top {
@@ -145,9 +142,13 @@ way to fit your requirements.
 }
 
 .editor_addon_dropdown .group {
-    margin-bottom: 20px;
-    display:block;
-    width:100%;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ededed;
+}
+.editor_addon_dropdown .group:last-child {
+    margin-bottom: 0;
+    border: 0;
 }
 
 .editor_addon_dropdown .group .group .group-title {
@@ -159,20 +160,48 @@ way to fit your requirements.
 }
 
 .editor_addon_dropdown .item {
-    margin: 0 0 0 10px;
-    line-height: 1.8em;
+    margin: 0 10px 0 0;
+    line-height: 1.8;
     white-space: nowrap;
     padding: 0;
+    display: inline-block;
+    color: #21759b;
+    cursor: pointer;
+}
+.editor_addon_dropdown .item:hover,
+.editor_addon_dropdown .item:active {
+    color: #d54e21;
+    text-decoration: underline;
+}
+
+.editor_addon_dropdown .direct-links,
+.editor_addon_dropdown .direct-links-desc {
+    display: inline-block;
+}
+
+.editor_addon_dropdown .direct-links-desc {
+    margin: 0 5px 0 0;
 }
 
 .editor_addon_dropdown .direct-links {
-    margin-bottom: 10px;
+    padding: 10px 0 0 0;
+    list-style: none;
 }
 
-.editor_addon_dropdown .direct-links a {
-    font-weight: normal;
-    line-height: 1.8em;
-    margin-right: 10px;
-    padding: 0;
-    color: #909090 !important;
+.editor_addon_dropdown .direct-links li {
+    display: inline-block;
+    margin: 0;
+    padding: 0 8px 0;
+    border-left: 1px solid #ccc;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+.editor_addon_dropdown .direct-links li:hover {
+    color: #d54e21;
+}
+
+.editor_addon_dropdown .direct-links li:first-child {
+    border-left: 0;
+    padding-left: 0;
 }

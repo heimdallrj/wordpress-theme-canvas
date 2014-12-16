@@ -2,6 +2,11 @@
 /**
  * Returns HTML formatted output for elements and handles form submission.
  *
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/common/classes/forms.php $
+ * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
+ * $LastChangedRevision: 1027712 $
+ * $LastChangedBy: iworks $
+ *
  * @version 1.0
  */
 if (!class_exists('Enlimbo_Forms_Wpcf')) {
@@ -318,19 +323,22 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
                         continue;
                     }
                     // Don't set disabled for checkbox
-                    if ($attribute == 'disabled' && $element['#type'] == 'checkbox') {
+                    if ( ( 'disabled' == $attribute || '#disabled' == $attribute )  && $element['#type'] == 'checkbox') {
                         continue;
                     }
                     // Append class values
                     if ($attribute == 'class') {
                         $value = $value . ' ' . $class . $error_class;
+						
                     }
                     // Set return string
                     $attributes .= ' ' . $attribute . '="' . $value . '"';
                 }
             }
             if (!isset($element['#attributes']['class'])) {
-                $attributes .= ' class="' . $class . $error_class . '"';
+				$is_default_element = isset( $element['#default_value'] ) && $element['#default_value'] ? ' wpcf-default-value-input' : '';
+				
+                $attributes .= ' class="' . $class . $error_class . $is_default_element . '"';
             }
             return $attributes;
         }
@@ -356,7 +364,12 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
             $element['_render']['suffix'] = isset($element['#suffix']) ? $element['#suffix'] . "\r\n" : '';
             $element['_render']['before'] = isset($element['#before']) ? $element['#before'] . "\r\n" : '';
             $element['_render']['after'] = isset($element['#after']) ? $element['#after'] . "\r\n" : '';
+            $labelclass = '';
+            if ( isset( $element['#labelclass'] ) ) {
+				$labelclass = $element['#labelclass'] . ' ';
+            }
             $element['_render']['label'] = isset($element['#title']) ? '<label class="'
+					. $labelclass
                     . $this->css_class . '-label ' . $this->css_class . '-'
                     . $element['#type'] . '-label" for="' . $element['#id'] . '">'
                     . stripslashes($element['#title'])
@@ -551,14 +564,16 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
          */
         public function checkbox($element)
         {
+			
             $element['#type'] = 'checkbox';
             $element = $this->_setRender($element);
             $element['_render']['element'] = '<input type="checkbox" id="'
                     . $element['#id'] . '" name="'
                     . $element['#name'] . '" value="';
             // Specific: if value is empty force 1 to be rendered
+            // Juan: removed this 1 forced value since it broke the default value in checkboxes filter controls
             $element['_render']['element'] .=
-                    !empty($element['#value']) ? htmlspecialchars($element['#value']) : 1;
+                    !empty($element['#value']) ? htmlspecialchars($element['#value']) : '';
             $element['_render']['element'] .= '"' . $element['_attributes_string'];
             $element['_render']['element'] .= ((!$this->isSubmitted()
                     && !empty($element['#default_value']))
@@ -567,6 +582,10 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
             if (!empty($element['#attributes']['disabled']) || !empty($element['#disable'])) {
                 $element['_render']['element'] .= ' onclick="javascript:return false; if(this.checked == 1){this.checked=1; return true;}else{this.checked=0; return false;}"';
             }
+            if (!empty($element['#attributes']['#disabled'])) {
+                $element['_render']['element'] .= ' disabled="disabled"';
+            }
+			
             $element['_render']['element'] .= ' />';
             $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><PREFIX><ELEMENT>&nbsp;<LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
             $output = $this->_pattern($pattern, $element);
@@ -656,7 +675,12 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
                 }
                 $value['#name'] = $element['#name'];
                 $value['#default_value'] = isset($element['#default_value']) ? $element['#default_value'] : $value['#value'];
-                $value['#disable'] = isset($element['#disable']) ? $element['#disable'] : false;
+                if ( !isset( $value['#disable'] ) ) {
+					$value['#disable'] = isset($element['#disable']) ? $element['#disable'] : false;
+				}
+                if ( isset( $element['#attributes'] ) && !isset( $value['#attributes'] ) ) {
+					$value['#attributes'] = $element['#attributes'];
+				}
                 $element['_render']['element'] .= $this->radio($value);
             }
             $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><PREFIX><TITLE><DESCRIPTION><ELEMENT><SUFFIX><AFTER>';
@@ -675,7 +699,9 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
         {
             $element['#type'] = 'select';
             $element = $this->_setRender($element);
-            $element['_render']['element'] = '<select id="' . $element['#id']
+			$multiple = isset( $element['#multiple'] ) ? $element['#multiple'] : '';
+			
+            $element['_render']['element'] = '<select '.$multiple.' id="' . $element['#id']
                     . '" name="' . $element['#name'] . '"'
                     . $element['_attributes_string'] . ">\r\n";
             $count = 1;
@@ -687,11 +713,24 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
                     $value['#value'] = $this->_count['select'] . '-' . $count;
                     $count += 1;
                 }
+				
                 $value['#type'] = 'option';
                 $element['_render']['element'] .= '<option value="'
                         . htmlspecialchars($value['#value']) . '"';
-                $element['_render']['element'] .= ( $element['#default_value']
-                        == $value['#value']) ? ' selected="selected"' : '';
+
+				if( is_array( $element['#default_value'] ) )
+				{
+					$element['_render']['element'] .= in_array( $value['#value'], $element['#default_value'] ) ? ' selected="selected"' : '';
+				}
+				else
+				{
+					$element['_render']['element'] .= ( $element['#default_value']
+	                        == $value['#value']) ? ' selected="selected"' : '';
+				}
+				if ( isset( $value['#disable'] ) ) {
+					$element['_render']['element'] .= ' disabled="disabled"';
+				}
+                
                 $element['_render']['element'] .= $this->_setElementAttributes($value);
                 $element['_render']['element'] .= '>';
                 $element['_render']['element'] .= isset($value['#title']) ? $value['#title'] : $value['#value'];

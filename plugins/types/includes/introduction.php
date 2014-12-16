@@ -1,6 +1,12 @@
 <?php
 /*
  * Introduction page.
+ *
+ * $HeadURL: $
+ * $LastChangedDate: $
+ * $LastChangedRevision: $
+ * $LastChangedBy: $
+ *
  */
 
 echo wpcf_add_admin_header(__('Help', 'wpcf'));
@@ -23,5 +29,13 @@ echo wpcf_add_admin_header(__('Help', 'wpcf'));
 	<li><?php printf(__('%sViews%s - the commercial complement of Types, which makes content display a breeze.', 'wpcf'), '<a target="_blank" href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=typesplugin&utm_medium=intro&utm_campaign=types"><strong>', ' &raquo;</strong></a>'); ?></li>
 </ul>
 
+<h3 style="margin-top:3em;"><?php _e('Debug information', 'wpcf'); ?></h3>
+
+<p><?php
+printf(
+    __( 'For retrieving debug information if asked by a support person, use the <a href="%s">debug information</a> page.', 'wpcf' ),
+    admin_url('admin.php?page=wpcf-debug-information')
+);
+?></p>
 <?php
 echo wpcf_add_admin_footer();

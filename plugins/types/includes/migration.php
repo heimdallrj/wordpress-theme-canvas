@@ -1,14 +1,22 @@
 <?php
 /*
  * Migration functions
+ *
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/includes/migration.php $
+ * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
+ * $LastChangedRevision: 1027712 $
+ * $LastChangedBy: iworks $
+ *
  */
 
 /**
  * Migration form.
- * 
- * @return array 
+ *
+ * @return array
  */
 function wpcf_admin_migration_form() {
+
+
     global $wpdb;
     $wpcf_types = get_option('wpcf-custom-types', array());
     $wpcf_taxonomies = get_option('wpcf-custom-taxonomies', array());
@@ -245,14 +253,17 @@ function wpcf_admin_migration_form() {
                                 $option_value = trim($temp[0]);
                                 $option_title = trim($temp[1]);
                             }
-                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $option_value . '_value'] = array(
+                            
+                            $_key = sanitize_title($option_value);
+                            
+                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $_key . '_value'] = array(
                                 '#type' => 'hidden',
-                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $option_value . '][value]',
+                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $_key . '][value]',
                                 '#value' => esc_attr($option_value),
                             );
-                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $option_value . '_title'] = array(
+                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $_key . '_title'] = array(
                                 '#type' => 'hidden',
-                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $option_value . '][title]',
+                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $_key . '][title]',
                                 '#value' => esc_attr($option_title),
                             );
                         }
@@ -324,14 +335,14 @@ function wpcf_admin_migration_form_submit() {
             foreach ($cfui_types as $cfui_type) {
                 if (sanitize_title($cfui_type['name']) == $types_slug) {
                     $data[$types_slug] = wpcf_admin_migrate_get_cfui_type_data($cfui_type);
-                    wpcf_admin_message_store(sprintf(__("Post Type %s added",
-                                            'wpcf'),
-                                    '<em>' . $cfui_type['name'] . '</em>'));
+                    wpcf_admin_message_store(
+                        sprintf(__("Post Type %s added", 'wpcf'),
+                        '<em>' . $cfui_type['name'] . '</em>')
+                    );
                 }
             }
         }
         $wpcf_types = array_merge($wpcf_types, $data);
-        update_option('wpcf-custom-types', $wpcf_types);
     }
     if (!empty($_POST['cfui']['tax'])) {
         $data = array();
@@ -342,15 +353,33 @@ function wpcf_admin_migration_form_submit() {
             foreach ($cfui_taxonomies as $cfui_tax) {
                 if (sanitize_title($cfui_tax['name']) == $tax_slug) {
                     $data[$tax_slug] = wpcf_admin_migrate_get_cfui_tax_data($cfui_tax);
-                    wpcf_admin_message_store(sprintf(__("Taxonomy %s added",
-                                            'wpcf'),
-                                    '<em>' . $cfui_tax['name'] . '</em>'));
+                    wpcf_admin_message_store(
+                        sprintf(__("Taxonomy %s added", 'wpcf'),
+                        '<em>' . $cfui_tax['name'] . '</em>')
+                    );
+                    if (
+                        array_key_exists(1,$cfui_tax)
+                        && !empty($cfui_tax[1])
+                        && is_array($cfui_tax[1])
+                    ) {
+                        foreach( $cfui_tax[1] as $key) {
+                            $types_slug = sanitize_title($key);
+                            if ( array_key_exists($types_slug, $wpcf_types) ) {
+                                if ( !array_key_exists('taxonomies', $wpcf_types[$types_slug] )) {
+                                    $wpcf_types[$types_slug]['taxonomies'] = array();
+                                }
+                                $wpcf_types[$types_slug]['taxonomies'][$tax_slug] = 1;
+                            }
+                        }
+
+                    }
                 }
             }
         }
         $wpcf_taxonomies = array_merge($wpcf_taxonomies, $data);
         update_option('wpcf-custom-taxonomies', $wpcf_taxonomies);
     }
+    update_option('wpcf-custom-types', $wpcf_types);
 
     // ACF
 

@@ -10,7 +10,109 @@ function wpcf_ajax() {
         die();
     }
     switch ($_REQUEST['wpcf_action']) {
-        case 'fields_insert':
+        /* User meta actions*/
+		case 'user_fields_control_bulk':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+            require_once WPCF_INC_ABSPATH . '/fields-control.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta-control.php';
+            wpcf_admin_user_fields_control_bulk_ajax();
+            break;
+
+        case 'usermeta_delete':
+        case 'delete_usermeta':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            if (isset($_GET['field_id'])) {
+                wpcf_admin_fields_delete_field($_GET['field_id'],'wp-types-user-group','wpcf-usermeta');
+            }
+            if (isset($_GET['field'])) {
+                wpcf_admin_fields_delete_field($_GET['field'],'wp-types-user-group','wpcf-usermeta');
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
+            break;
+			
+		case 'remove_from_history2':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            $fields = wpcf_admin_fields_get_fields( true, true,false,'wpcf-usermeta');
+            if (isset($_GET['field_id']) && isset($fields[$_GET['field_id']])) {
+                $fields[$_GET['field_id']]['data']['removed_from_history'] = 1;
+                wpcf_admin_fields_save_fields($fields, true, 'wpcf-usermeta');
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
+            break;	
+			
+		case 'deactivate_user_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+	        $success = wpcf_admin_fields_deactivate_group(intval($_GET['group_id']), 'wp-types-user-group');
+            if ($success) {
+                echo json_encode(array(
+                    'output' => __('Group deactivated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . intval($_GET['group_id']) . '").replaceWith(\''
+                    . wpcf_admin_usermeta_get_ajax_activation_link(intval($_GET['group_id']))
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
+                    'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;
+			
+		case 'activate_user_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+            $success = wpcf_admin_fields_activate_group(intval($_GET['group_id']), 'wp-types-user-group');
+            if ($success) {
+                echo json_encode(array(
+                    'output' => __('Group activated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . intval($_GET['group_id']) . '").replaceWith(\''
+                    . wpcf_admin_usermeta_get_ajax_deactivation_link(intval($_GET['group_id']))
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
+                    'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;	
+			
+		case 'delete_usermeta_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+            wpcf_admin_fields_delete_group(intval($_GET['group_id']), 'wp-types-user-group');
+            echo json_encode(array(
+                'output' => '',
+                'execute' => 'jQuery("#wpcf-list-activate-'
+                . intval($_GET['group_id'])
+                . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
+                'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+            ));
+            break;	
+        
+		case 'usermeta_insert_existing':
+			require_once WPCF_INC_ABSPATH . '/fields.php';
+            require_once WPCF_INC_ABSPATH . '/fields-form.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta-form.php';
+            wpcf_usermeta_insert_existing_ajax();
+            wpcf_form_render_js_validation();
+            break;
+		/* End Usertmeta actions*/
+		
+		
+		
+		
+		case 'fields_insert':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             require_once WPCF_INC_ABSPATH . '/fields-form.php';
             wpcf_fields_insert_ajax();
@@ -141,7 +243,45 @@ function wpcf_ajax() {
             }
             $custom_types = get_option('wpcf-custom-types', array());
             $custom_type = strval($_GET['wpcf-post-type']);
+
+            /**
+             * delete relataion?
+             */
+            if ( apply_filters('wpcf_delete_relation_meta', false) ) {
+                global $wpdb;
+                $wpdb->delete(
+                    $wpdb->postmeta,
+                    array( 'meta_key' => sprintf( '_wpcf_belongs_%s_id', $custom_type ) ),
+                    array( '%s' )
+                );
+            }
+
             unset($custom_types[$custom_type]);
+            /**
+             * remove post relation
+             */
+            foreach ( array_keys($custom_types) as $post_type ) {
+                if ( array_key_exists( 'post_relationship', $custom_types[$post_type] ) ) {
+                    /**
+                     * remove "has" relation
+                     */
+                    if (
+                        array_key_exists( 'has', $custom_types[$post_type]['post_relationship'] )
+                        && array_key_exists( $custom_type, $custom_types[$post_type]['post_relationship']['has'] )
+                    ) {
+                        unset($custom_types[$post_type]['post_relationship']['has'][$custom_type]);
+                    }
+                    /**
+                     * remove "belongs" relation
+                     */
+                    if (
+                        array_key_exists( 'belongs', $custom_types[$post_type]['post_relationship'] )
+                        && array_key_exists( $custom_type, $custom_types[$post_type]['post_relationship']['belongs'] )
+                    ) {
+                        unset($custom_types[$post_type]['post_relationship']['belongs'][$custom_type]);
+                    }
+                }
+            }
             update_option('wpcf-custom-types', $custom_types);
             wpcf_admin_deactivate_content('post_type', $custom_type);
             echo json_encode(array(
@@ -423,64 +563,54 @@ function wpcf_ajax() {
             update_option('wpcf_toggle', $option);
             break;
 
-        case 'footer_credits':
-            // TODO Remove
-//            require_once WPCF_EMBEDDED_INC_ABSPATH . '/footer-credit.php';
-//            wpcf_footer_credit_settings();
-//            break;
-
-        case 'footer_credit_activate_message':
-            // TODO Remove
-//            require_once WPCF_EMBEDDED_INC_ABSPATH . '/footer-credit.php';
-//            $option = get_option('wpcf_footer_credit', array());
-//            if (!isset($option['message'])) {
-//                $data = wpcf_footer_credit_defaults();
-//                shuffle($data);
-//                $option['message'] = rand(0, count($data));
-//            }
-//            update_option('wpcf_footer_credit',
-//                    array('active' => 1, 'message' => $option['message']));
-
         case 'cb_save_empty_migrate':
             $output = '<span style="color:red;">'
                     . __('Wrong field specified', 'wpcf') . '</div>';
             if (isset($_GET['field']) && isset($_GET['subaction'])) {
                 require_once WPCF_INC_ABSPATH . '/fields.php';
-                $field = wpcf_admin_fields_get_field($_GET['field']);
+                $option = $_GET['meta_type'] == 'usermeta' ? 'wpcf-usermeta' : 'wpcf-fields';
+                $meta_type = $_GET['meta_type'];
+                $field = wpcf_admin_fields_get_field($_GET['field'], false, false,
+                        false, $option);
+                
+                $_txt_updates = $meta_type == 'usermeta' ? __( '%d users require update',
+                                'wpcf' ) : __( '%d posts require update', 'wpcf' );
+                $_txt_no_updates = $meta_type == 'usermeta' ? __('No users require update', 'wpcf') : __('No posts require update', 'wpcf');
+                $_txt_updated = $meta_type == 'usermeta' ? __('Users updated', 'wpcf') : __('Posts updated', 'wpcf');
+                
                 if (!empty($field)) {
                     if ($_GET['subaction'] == 'save_check'
                             || $_GET['subaction'] == 'do_not_save_check') {
                         if ($field['type'] == 'checkbox') {
-                            $posts = wpcf_admin_fields_checkbox_migrate_empty_check($_GET['field'],
+                            $posts = wpcf_admin_fields_checkbox_migrate_empty_check($field,
                                     $_GET['subaction']);
                         } else if ($field['type'] == 'checkboxes') {
-                            $posts = wpcf_admin_fields_checkboxes_migrate_empty_check($_GET['field'],
+                            $posts = wpcf_admin_fields_checkboxes_migrate_empty_check($field,
                                     $_GET['subaction']);
                         }
                         if (!empty($posts)) {
                             $output = '<div class="message updated"><p>'
-                                    . sprintf(__('%d posts require update',
-                                                    'wpcf'), count($posts)) . '&nbsp;'
+                                    . sprintf($_txt_updates, count($posts)) . '&nbsp;'
                                     . '<a href="javascript:void(0);" class="button-primary" onclick="'
                                     . 'wpcfCbSaveEmptyMigrate(jQuery(this).parent().parent().parent(), \''
                                     . $_GET['field'] . '\', '
                                     . count($posts) . ', \''
                                     . wp_create_nonce('cb_save_empty_migrate') . '\', \'';
                             $output .= $_GET['subaction'] == 'save_check' ? 'save' : 'do_not_save';
-                            $output .= '\');'
+                            $output .= '\', \'' . $meta_type . '\');'
                                     . '">'
                                     . __('Update') . '</a>' . '</p></div>';
                         } else {
                             $output = '<div class="message updated"><p><em>'
-                                    . __('No posts require update', 'wpcf') . '</em></p></div>';
+                                    . $_txt_no_updates . '</em></p></div>';
                         }
                     } else if ($_GET['subaction'] == 'save'
                             || $_GET['subaction'] == 'do_not_save') {
                         if ($field['type'] == 'checkbox') {
-                            $posts = wpcf_admin_fields_checkbox_migrate_empty($_GET['field'],
+                            $posts = wpcf_admin_fields_checkbox_migrate_empty($field,
                                     $_GET['subaction']);
                         } else if ($field['type'] == 'checkboxes') {
-                            $posts = wpcf_admin_fields_checkboxes_migrate_empty($_GET['field'],
+                            $posts = wpcf_admin_fields_checkboxes_migrate_empty($field,
                                     $_GET['subaction']);
                         }
                         if (isset($posts['offset'])) {
@@ -493,22 +623,14 @@ function wpcf_ajax() {
                                         . $posts['offset'] . ','
                                         . '\'' . $_GET['field'] . '\','
                                         . '\'' . wp_create_nonce('cb_save_empty_migrate')
-                                        . '\');</script>'
+                                        . '\', \'' . $meta_type . '\');</script>'
                                         . number_format($posts['offset'])
                                         . '/' . number_format(intval($_GET['total']))
                                         . '<div class="wpcf-ajax-loading-small"></div>';
                             }
                         } else {
                             $output = '<div class="message updated"><p>'
-                                    . __('Posts updated', 'wpcf') . '</p></div>';
-//                        if (!empty($posts)) {
-//                            $output = '<div class="message updated"><p>'
-//                                    . sprintf(__('%d posts updated', 'wpcf'),
-//                                            count($posts)) . '</p></div>';
-//                        } else {
-//                            $output = '<div class="message updated"><p><em>'
-//                                    . __('No posts updated', 'wpcf') . '</em></p></div>';
-//                        }
+                                    . $_txt_updated . '</p></div>';
                         }
                     }
                 }

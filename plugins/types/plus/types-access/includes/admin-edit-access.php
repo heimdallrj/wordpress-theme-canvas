@@ -23,6 +23,11 @@ function wpcf_access_admin_edit_access($enabled = true) {
         if (isset($types[$type_slug])) {
             continue;
         }
+        if ($type_slug == 'view-template' || $type_slug == 'view' || $type_slug == 'cred-form') {
+                // Don't list Views and View templates separately.
+                // Don't list CRED form post types.
+                continue;
+        }
         $types[$type_slug] = (array) $type_data;
         unset($types[$type_slug]->labels, $types[$type_slug]->cap);
         $types[$type_slug]['labels'] = (array) $type_data->labels;
@@ -158,7 +163,7 @@ function wpcf_access_admin_edit_access($enabled = true) {
             $output .= '<div class="wpcf-access-type-item">';
             $output .= '<strong>' . $tax_data['labels']['name'] . '</strong>';
             // Add warning if shared and settings are different
-            $disable_same_as_parent = false; //debug($supports_check, false);
+            $disable_same_as_parent = false;
             if ($enabled && isset($supports_check[$tax_slug])
                     && count($supports_check[$tax_slug]) > 1) {
                 $txt = array();
@@ -890,7 +895,7 @@ function wpcf_access_reassign_role_form($role) {
                         'wpcf_access'), '<em>' . $users_txt . '</em>');
         $output .= wpcf_access_admin_roles_dropdown(get_editable_roles(),
                 'wpcf_reassign', array(),
-                __('--- chose role ---', 'wpcf_access'), true, array($role));
+                __('--- choose role ---', 'wpcf_access'), true, array($role));
     } else {
         $output .= '<input type="hidden" name="wpcf_reassign" value="ignore" />';
         $output .= __('Do you really want to remove this role?', 'wpcf_access');
