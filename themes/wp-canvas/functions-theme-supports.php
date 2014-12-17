@@ -29,11 +29,4 @@
 	}
 	add_filter('excerpt_length', 'custom_excerpt_length');
 	
-	// no more jumping for read more link
-	function no_more_jumping($post) {
-		return '<a href="'.get_permalink($post->ID).'" class="read-more">'.'Continue Reading'.'</a>';
-	}
-	add_filter('excerpt_more', 'no_more_jumping');
-	add_filter('the_content_more_link', 'remove_more_jump_link');
-	
 ?>
