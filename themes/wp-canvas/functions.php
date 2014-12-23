@@ -5,6 +5,7 @@ define('DEV_SITE_URI','http://www.github.com/thinkholic');
 define('DEV_NAME','@_thinkholic');
 define('ADMIN_EMAIL','me@thinkholic.com');
 define('ADMIN_NAME','thinkholic');
+define('DEV_YEAR','2014');
 
 /*
  * Load jQuery
@@ -44,5 +45,6 @@ include_once('functions-sidebar.php');
 include_once('functions-admin.php');
 include_once('functions-custom.php');
 include_once('functions-theme-supports.php');
+include_once('functions-email-setup.php');
 
 ?>

@@ -71,10 +71,11 @@ function get_page_by_id( $id )
     return $data;
 }
 
-function get_posts_by_post_type( $post_type )
+function get_posts_by_post_type( $post_type, $order="DESC" )
 {
     $args = array(
         "post_type" => "$post_type",
+        "order" => "$order"
     );
 
     $data = array();
