@@ -46,5 +46,6 @@ include_once('functions-admin.php');
 include_once('functions-custom.php');
 include_once('functions-theme-supports.php');
 include_once('functions-email-setup.php');
+include_once('functions-custom-admin-sections.php');
 
 ?>
