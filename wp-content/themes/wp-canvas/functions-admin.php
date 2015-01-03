@@ -116,7 +116,7 @@ function th_append_admin_bar_item()
                             array(
                                 'id' => 'wp-admin-bar-new-item',
                                 'title' => SITE_TITLE,
-                                'href' => '<site_uri>',
+                                'href' => SITE_URL,
                                 'meta'  => array( 'target' => '_blank' )
                             ));
 }
