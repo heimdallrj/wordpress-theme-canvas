@@ -1,5 +1,8 @@
 <?php
 
+/*
+ * Register custom general settings
+ */
 add_filter('admin_init', 'register_custom_general_settings');
 
 function register_custom_general_settings()
@@ -13,6 +16,9 @@ function register_custom_general_settings()
     add_settings_field('twitter_handler', '<label for="twitter_handler">'.__('Twitter handler' , 'twitter_handler' ).'</label>' , 'fn_custom_field_twitter_handler', 'general');
 }
 
+/*
+ * Custom options HTMLs
+ */
 function fn_custom_field_fb_fan_page_url()
 {
 	$val = get_option( 'fb_fan_page_url', '' );
