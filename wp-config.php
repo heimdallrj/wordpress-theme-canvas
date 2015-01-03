@@ -3,15 +3,15 @@
  * The base configurations of the WordPress.
  *
  * This file has the following configurations: MySQL settings, Table Prefix,
- * Secret Keys, WordPress Language, and ABSPATH. You can find more information
- * by visiting {@link http://codex.wordpress.org/Editing_wp-config.php Editing
- * wp-config.php} Codex page. You can get the MySQL settings from your web host.
+ * Secret Keys, and ABSPATH. You can find more information by visiting
+ * {@link http://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php}
+ * Codex page. You can get the MySQL settings from your web host.
  *
  * This file is used by the wp-config.php creation script during the
  * installation. You don't have to use the web site, you can just copy this file
  * to "wp-config.php" and fill in the values.
  *
- * @package WordPress 3.5
+ * @package WordPress
  */
 
 // ** MySQL settings - You can get this info from your web host ** //
@@ -59,7 +59,7 @@ define('NONCE_SALT',       '>t!gUT-~$B=eC6Q#/PBnU#GTK60l=4Fk9f4pZ[]yrJ3U]T|o<wH*
  * You can have multiple installations in one database if you give each a unique
  * prefix. Only numbers, letters, and underscores please!
  */
-$table_prefix  = 'wptbl_';
+$table_prefix  = 'wpctbl_';
 
 /**
  * WordPress Localized Language, defaults to English.
@@ -78,7 +78,7 @@ define('WPLANG', '');
  * It is strongly recommended that plugin and theme developers use WP_DEBUG
  * in their development environments.
  */
-define('WP_DEBUG', false);
+define('WP_DEBUG', true);
 
 /**
  * Speed: Set WordPress Post Revisions
@@ -137,11 +137,6 @@ define('RELOCATE',true); // We're not done yet!
  * Disable installing new themes and plugins, and updating them:
  */
 //define('DISALLOW_FILE_MODS',true);
-
-/**
- * Enable Development Mode while developing the Site
- */
-define('WP_DEBUG',true);
 
 /* That's all, stop editing! Happy blogging. */
 
