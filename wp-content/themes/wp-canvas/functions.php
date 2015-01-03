@@ -1,6 +1,7 @@
 <?php
 
 define('SITE_URL','http://www.github.com/thinkholic');
+define('SITE_TITLE','WP DevReady');
 define('DEV_SITE_URI','http://www.github.com/thinkholic');
 define('DEV_NAME','@_thinkholic');
 define('ADMIN_EMAIL','me@thinkholic.com');

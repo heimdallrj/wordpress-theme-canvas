@@ -115,9 +115,9 @@ function th_append_admin_bar_item()
     $wp_admin_bar->add_menu(
                             array(
                                 'id' => 'wp-admin-bar-new-item',
-                                'title' => __('<site_title>'),
+                                'title' => SITE_TITLE,
                                 'href' => '<site_uri>',
-                                'meta'  => array( target => '_blank' )
+                                'meta'  => array( 'target' => '_blank' )
                             ));
 }
 add_action('wp_before_admin_bar_render', 'th_append_admin_bar_item');

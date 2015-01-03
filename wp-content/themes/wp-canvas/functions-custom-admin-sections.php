@@ -41,8 +41,8 @@ function add_page_sample2()
  * add actions
  */
 add_action( 'admin_init', 'theme_settings_init' );
-add_action( 'admin_menu', 'add_page_tour_req' );
-add_action( 'admin_menu', 'add_page_admissions' );
+add_action( 'admin_menu', 'add_page_sample1' );
+add_action( 'admin_menu', 'add_page_sample2' );
  
 /*
  * Page Outputs
