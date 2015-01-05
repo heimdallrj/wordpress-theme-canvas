@@ -1,12 +1,19 @@
 <?php
-global $wpObj;
-$id = get_the_ID();
-$wpObj = get_page_by_id( $id );
+/**
+ * A blank WordPress Theme Canvas for Developers
+ *
+ * @package WordPress
+ * @subpackage wp-canvas
+ * @since v2.0
+ *
+ */
+global $wpPageObj;
+$wpPageObj = get_page_by_id( get_the_ID() );
 
-$title = $wpObj['site']['name'];
+$title = $wpPageObj['site']['name'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html <?php language_attributes(); ?> class="no-js">
 
 <head>
 
@@ -18,8 +25,6 @@ $title = $wpObj['site']['name'];
 <?php } ?>
     
 <title><?php print $title; ?></title>
-	
-<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 
 <link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" />
 
