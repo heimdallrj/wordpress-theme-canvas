@@ -1,5 +1,4 @@
-wp-canvas
-=========
+WordPress Theme Canvas
+======================
 
-WordPress Development ready theme canvas.
-Tested on WP 4.1
+A Starter WordPress Theme for Developers who wish to develop a WordPress theme from scratch.
