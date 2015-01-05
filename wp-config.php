@@ -138,6 +138,9 @@ define('RELOCATE',true); // We're not done yet!
  */
 //define('DISALLOW_FILE_MODS',true);
 
+/* Multisite */
+define( 'WP_ALLOW_MULTISITE', false );
+
 /* That's all, stop editing! Happy blogging. */
 
 /** Absolute path to the WordPress directory. */
