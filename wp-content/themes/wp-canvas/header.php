@@ -7,10 +7,10 @@
  * @since v2.0
  *
  */
-global $wpPageObj;
-$wpPageObj = get_page_by_id( get_the_ID() );
+global $pgObj;
+$pgObj = get_page_by_id( get_the_ID() );
 
-$title = $wpPageObj['site']['name'];
+$title = $pgObj['site']['name'];
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> class="no-js">
