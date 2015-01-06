@@ -1,4 +1,4 @@
-﻿=== WordPress Firewall 2 ===
+=== WordPress Firewall 2 ===
 Contributors: pavy, seoegghead
 Donate link: http://matthewpavkov.com/wordpress-plugins/
 Tags: security, firewall
