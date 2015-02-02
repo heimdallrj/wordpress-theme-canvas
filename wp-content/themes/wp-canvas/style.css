@@ -1,10 +1,17 @@
 /*   
-Theme Name: wp-Canvas
+Theme Name: WPCanvas
 Theme URI: <theme URI>
-Description: <This is just a BLANK starter WordPress Theme template -- WordPress v4+
 Author: @_thinkholic
 Author URI: http://www.github.com/thinkholic/
-Version: 2.0
+Description: <This is just a BLANK starter WordPress Theme template -- WordPress v4+
+Version: 3.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: theme-canvas, custom-header, custom-menu, editor-style, featured-images, post-formats, 
+Text Domain: wp-canvas
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned with others.
 */
 
 /* =Reset default browser CSS. **

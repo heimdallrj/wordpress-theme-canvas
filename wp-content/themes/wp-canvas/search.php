@@ -2,7 +2,7 @@
 
 	<?php if (have_posts()) : ?>
 
-		<h2>Search Results for <em>&quot;<?php echo $_GET['s']; ?>&quot;</em></h2>
+		<h2><?php printf( __( 'Search Results for: %s' ), '<span>' . get_search_query() . '</span>'); ?></h2>
 
 		<?php while (have_posts()) : the_post(); ?>
 

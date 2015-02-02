@@ -1,16 +1,14 @@
 <?php
 /**
- * A blank WordPress Theme Canvas for Developers
+ * WordPress-Theme-Canvas
+ * A Starter WordPress Theme for Developers who wish to develop a WordPress theme from scratch.
  *
  * @package WordPress
- * @subpackage wp-canvas
- * @since v2.0
+ * @subpackage WPCanvas
+ * @since v3.0
  *
+ * @file header.php
  */
-global $pgObj;
-$pgObj = get_page_by_id( get_the_ID() );
-
-$title = $pgObj['site']['name'];
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> class="no-js">
@@ -24,9 +22,9 @@ $title = $pgObj['site']['name'];
     <meta name="robots" content="noindex, nofollow" /> 
 <?php } ?>
     
-<title><?php print $title; ?></title>
+<title><?php wp_title(); ?></title>
 
-<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" />
+<link rel="stylesheet" href=" <?php print get_stylesheet_uri(); ?> " type="text/css" />
 
 <link rel="pingback" href="<?php bloginfo('pingback_url'); ?>" />
 

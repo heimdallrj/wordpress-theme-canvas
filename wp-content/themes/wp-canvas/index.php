@@ -1,17 +1,30 @@
+<?php
+/**
+ * WordPress-Theme-Canvas
+ * A Starter WordPress Theme for Developers who wish to develop a WordPress theme from scratch.
+ *
+ * @package WordPress
+ * @subpackage WPCanvas
+ * @since v3.0
+ *
+ * @file index.php
+ * The main template. If your Theme provides its own templates, index.php must be present. 
+ */
+?>
 <!-- Blog Layout -->
 
 <?php get_header(); ?>
 
 	<?php if (have_posts()) : while (have_posts()) : the_post(); ?>
 
-		<div <?php post_class() ?> id="post-<?php the_ID(); ?>">
+		<div id="post-<?php the_ID(); ?>" <?php post_class() ?>>
 
 			<h3><a href="<?php the_permalink() ?>"><?php the_title(); ?></a></h3>
+            
+            <?php if ( has_post_thumbnail() ) { the_post_thumbnail(); } ?>
 
-			<div class="entry">
-				<?php the_content(); ?>
-			</div> <!--/.entry-->
-
+			<?php the_content(); ?>
+                
 		</div> <!--/.post-->
 
 	<?php endwhile; ?>

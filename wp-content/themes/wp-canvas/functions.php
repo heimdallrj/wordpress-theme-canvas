@@ -6,7 +6,8 @@ define('DEV_SITE_URI','http://www.github.com/thinkholic');
 define('DEV_NAME','@_thinkholic');
 define('ADMIN_EMAIL','me@thinkholic.com');
 define('ADMIN_NAME','thinkholic');
-define('DEV_YEAR','2014');
+define('DEV_YEAR','2015');
+define('TEXTDOMAIN','WPCanvas');
 
 /*
  * Load jQuery
@@ -42,12 +43,16 @@ add_filter('the_generator', 'th_remove_version');
  * Include custom functions set
  * @ sidebars, admin, theme-support, other
  */
-include_once('functions-sidebar.php');
-include_once('functions-admin.php');
-include_once('functions-custom.php');
-include_once('functions-theme-supports.php');
-include_once('functions-email-setup.php');
-include_once('functions-custom-admin-sections.php');
-include_once('functions-custom-general-settings.php');
+include_once('inc/functions-sidebar.php');
+include_once('inc/functions-admin.php');
+include_once('inc/functions-custom.php');
+include_once('inc/functions-theme-supports.php');
+include_once('inc/functions-custom-admin-sections.php');
+include_once('inc/functions-custom-general-settings.php');
 
-?>
+/**
+ * Post Types
+ */
+include_once('inc/post-type-sample.php');
+
+// EOF.

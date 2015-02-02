@@ -174,7 +174,7 @@ add_action('admin_menu', 'th_hide_plugin_update_indicator');
  */
 function th_change_footer_left()
 {
-  print 'Developed by <a href="'.DEV_SITE_URI.'" target="_blank">'.DEV_NAME.'</a> &bull; '. DEV_YEAR;
+	print '&equiv; '.DEV_YEAR.' &bull; Developed by <a href="'.DEV_SITE_URI.'" target="_blank">'.DEV_NAME.'</a> | <a href="https://github.com/thinkholic/WordPress-Theme-Canvas" target="_blank">WPCanvas</a>';
 }
 add_filter('admin_footer_text', 'th_change_footer_left');
 
