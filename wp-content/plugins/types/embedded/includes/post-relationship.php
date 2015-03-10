@@ -2,9 +2,9 @@
 /*
  * Post relationship code.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/includes/post-relationship.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/post-relationship.php $
+ * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
+ * $LastChangedRevision: 1069430 $
  * $LastChangedBy: iworks $
  *
  */
@@ -200,7 +200,7 @@ function wpcf_admin_notice_post_locked_no_parent() {
  */
 function wpcf_pr_admin_post_meta_box_output( $post, $args )
 {
-    if ( empty( $post->ID ) ) {
+    if ( empty($post) || empty( $post->ID ) ) {
         return array();
     }
 
@@ -210,12 +210,17 @@ function wpcf_pr_admin_post_meta_box_output( $post, $args )
     $relationships = $args;
     $post_id = !empty( $post->ID ) ? $post->ID : -1;
     $current_post_type = wpcf_admin_get_edited_post_type( $post );
+
     /*
      * Render has form (child form)
      */
     if ( !empty( $relationships['has'] ) ) {
         foreach ( $relationships['has'] as $post_type => $data ) {
-            $output .= $wpcf->relationship->child_meta_form( $post, $post_type, $data );
+            if ( isset($data['fields_setting']) && 'only_list' == $data['fields_setting'] ) {
+                $output .= $wpcf->relationship->child_list( $post, $post_type, $data );
+            } else {
+                $output .= $wpcf->relationship->child_meta_form( $post, $post_type, $data );
+            }
         }
     }
     /*
@@ -233,20 +238,18 @@ function wpcf_pr_admin_post_meta_box_output( $post, $args )
                 }
             }
         }
-        $output_temp = '';
         foreach ( $relationships['belongs'] as $post_type => $data ) {
-            $output_temp .= wpcf_form_simple(
-                wpcf_pr_admin_post_meta_box_belongs_form( $post, $post_type, $belongs )
-            );
-        }
-        if ( !empty( $output_temp ) ) {
-            $types_existing = get_option( 'wpcf-custom-types', array() );
             $output .= '<div style="margin: 20px 0 10px 0">';
-            $output .= sprintf(
-                __( 'This <i>%s</i> belongs to:', 'wpcf' ),
-                $types_existing[$current_post_type]['labels']['singular_name']
-            );
-            $output .= '</div>' . $output_temp;
+            if ( $x = wpcf_form_simple( wpcf_pr_admin_post_meta_box_belongs_form( $post, $post_type, $belongs ) ) ) {
+                $output .= sprintf(
+                    __( 'This <i>%s</i> belongs to:', 'wpcf' ),
+                    get_post_type_object($current_post_type)->labels->singular_name
+                );
+                $output .= $x;
+            } else {
+                $output .= get_post_type_object($post_type)->labels->not_found;
+            }
+            $output .= '</div>';
         }
     }
     return $output;

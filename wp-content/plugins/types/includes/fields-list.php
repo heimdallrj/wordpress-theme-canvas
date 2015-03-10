@@ -2,10 +2,10 @@
 /*
  * Fields and groups list functions
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/includes/fields-list.php $
- * $LastChangedDate: 2014-08-22 01:02:43 +0000 (Fri, 22 Aug 2014) $
- * $LastChangedRevision: 970205 $
- * $LastChangedBy: brucepearson $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/includes/fields-list.php $
+ * $LastChangedDate: 2015-02-04 13:43:06 +0000 (Wed, 04 Feb 2015) $
+ * $LastChangedRevision: 1082328 $
+ * $LastChangedBy: iworks $
  *
  */
 
@@ -63,15 +63,16 @@ function wpcf_admin_fields_list() {
             $name .= '<div id="wpcf_list_ajax_response_' . $group['id'] . '"></div>';
 
             $rows[$group['id']]['name'] = $name;
+            $rows[$group['id']]['raw_name'] = $group['name'];
 
 
             $rows[$group['id']]['description'] = $group['description'];
             $rows[$group['id']]['active-' . $group['id']] = $group['is_active'] ? __('Yes', 'wpcf') : __('No', 'wpcf');
+            $rows[$group['id']]['status'] = $group['is_active']? 'active':'inactive';
 
             // Set 'post_tpes' column
             $post_types = wpcf_admin_get_post_types_by_group($group['id']);
-            $rows[$group['id']]['post_types'] = empty($post_types) ? __('None',
-                'wpcf') : implode(', ', $post_types);
+            $rows[$group['id']]['post_types'] = empty($post_types) ? __('All post types', 'wpcf') : implode(', ', $post_types);
 
             // Set 'taxonomies' column
             $taxonomies = wpcf_admin_get_taxonomies_by_group($group['id']);
@@ -90,10 +91,22 @@ function wpcf_admin_fields_list() {
             }
             $rows[$group['id']]['tax'] = $output;
         }
+        uasort($rows, 'wpcf_admin_fields_list_sort');
 
         // Render table
         wpcf_admin_widefat_table('wpcf_groups_list', $header, $rows);
     }
 
     do_action('wpcf_groups_list_table_after');
+}
+
+function wpcf_admin_fields_list_sort($a,$b)
+{
+    $a = strtolower($a['raw_name']);
+    $b = strtolower($b['raw_name']);
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a < $b) ? -1 : 1;
+
 }

@@ -2,9 +2,9 @@
 /*
  * Fields and groups form functions.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/includes/fields-form.php $
- * $LastChangedDate: 2014-10-23 10:33:39 +0000 (Thu, 23 Oct 2014) $
- * $LastChangedRevision: 1012677 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/includes/fields-form.php $
+ * $LastChangedDate: 2015-01-28 06:42:34 +0000 (Wed, 28 Jan 2015) $
+ * $LastChangedRevision: 1077234 $
  * $LastChangedBy: iworks $
  *
  */
@@ -366,23 +366,20 @@ function wpcf_admin_fields_form() {
         )
     );
     if ( !$update ) {
-        $form['title']['#attributes']['onfocus'] = 'if (jQuery(this).val() == \'' . __( 'Enter group title',
-                        'wpcf' ) . '\') { jQuery(this).val(\'\'); }';
-        $form['title']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\'' . __( 'Enter group title',
-                        'wpcf' ) . '\') }';
+        $form['title']['#attributes']['data-label'] = addcslashes(__( 'Enter group title', 'wpcf' ), '"');
+        $form['title']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
+        $form['title']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
     }
     $form['description'] = array(
         '#type' => 'textarea',
         '#id' => 'wpcf-group-description',
         '#name' => 'wpcf[group][description]',
-        '#value' => $update ? $update['description'] : __( 'Enter a description for this group',
-                        'wpcf' ),
+        '#value' => $update ? $update['description'] : __( 'Enter a description for this group', 'wpcf' ),
     );
     if ( !$update ) {
-        $form['description']['#attributes']['onfocus'] = 'if (jQuery(this).val() == \''
-                . __( 'Enter a description for this group', 'wpcf' ) . '\') { jQuery(this).val(\'\'); }';
-        $form['description']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
-                . __( 'Enter a description for this group', 'wpcf' ) . '\') }';
+        $form['description']['#attributes']['data-label'] = addcslashes(__( 'Enter a description for this group', 'wpcf' ), '"');
+        $form['description']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
+        $form['description']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
     }
 
     /*
@@ -418,24 +415,20 @@ function wpcf_admin_fields_form() {
         }
         $options[$post_type_slug]['#name'] = 'wpcf[group][supports][' . $post_type_slug . ']';
         $options[$post_type_slug]['#title'] = $post_type->label;
-        $options[$post_type_slug]['#default_value'] = ($update && !empty( $update['post_types'] ) && in_array( $post_type_slug,
-                        $update['post_types'] )) ? 1 : 0;
+        $options[$post_type_slug]['#default_value'] = ($update && !empty( $update['post_types'] ) && in_array( $post_type_slug, $update['post_types'] )) ? 1 : 0;
         $options[$post_type_slug]['#value'] = $post_type_slug;
         $options[$post_type_slug]['#inline'] = TRUE;
         $options[$post_type_slug]['#suffix'] = '<br />';
         $options[$post_type_slug]['#id'] = 'wpcf-form-groups-support-post-type-' . $post_type_slug;
         $options[$post_type_slug]['#attributes'] = array('class' => 'wpcf-form-groups-support-post-type');
-        if ( $update && !empty( $update['post_types'] ) && in_array( $post_type_slug,
-                        $update['post_types'] ) ) {
+        if ( $update && !empty( $update['post_types'] ) && in_array( $post_type_slug, $update['post_types'] ) ) {
             $post_types_currently_supported[] = $post_type->label;
         }
     }
 
     if ( empty( $post_types_currently_supported ) ) {
-        $post_types_currently_supported[] = __( 'Displayed on all content types',
-                'wpcf' );
+        $post_types_currently_supported[] = __( 'Displayed on all content types', 'wpcf' );
     }
-
 
 
     /*
@@ -467,14 +460,6 @@ function wpcf_admin_fields_form() {
             implode( ',', $post_types_currently_supported ),
             __( 'Displayed on all content types', 'wpcf' ), $temp );
 
-
-
-
-
-
-
-
-
     /*
      * 
      * 
@@ -486,8 +471,7 @@ function wpcf_admin_fields_form() {
      * 
      * TAXONOMIES FILTER QUERY
      */
-    $taxonomies = apply_filters( 'wpcf_group_form_filter_taxonomies',
-            get_taxonomies( '', 'objects' ) );
+    $taxonomies = apply_filters( 'wpcf_group_form_filter_taxonomies', get_taxonomies( '', 'objects' ) );
     $options = array();
     $tax_currently_supported = array();
     $form_tax = array();

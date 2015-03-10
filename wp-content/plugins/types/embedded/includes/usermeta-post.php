@@ -113,7 +113,8 @@ function wpcf_admin_userprofile_init($user_id){
                             );
                         }
                         $config['title'] = $config['description'] = '';
-                        $output .= wptoolset_form_field( 'your-profile', $config, $meta );
+                        $form_name = $user_id->ID? 'your-profile':'createuser';
+                        $output .= wptoolset_form_field( $form_name, $config, $meta );
                         if ( $description ) {
                             $output .= $description;
                         }

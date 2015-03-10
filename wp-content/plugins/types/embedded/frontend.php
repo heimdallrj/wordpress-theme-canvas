@@ -2,9 +2,9 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/frontend.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/frontend.php $
+ * $LastChangedDate: 2015-01-28 06:42:34 +0000 (Wed, 28 Jan 2015) $
+ * $LastChangedRevision: 1077234 $
  * $LastChangedBy: iworks $
  *
  */
@@ -49,7 +49,7 @@ add_shortcode( 'types', 'wpcf_shortcode' );
 function wpcf_shortcode( $atts, $content = null, $code = '' ) {
 
     global $wpcf;
-
+    
     // Switch the post if there is an attribute of 'id' in the shortcode.
     $post_id_atts = new WPV_wpcf_switch_post_from_attr_id( $atts );
 
@@ -522,6 +522,10 @@ function wpcf_views_query( $query, $view_settings ) {
                 $field_name = $meta['key'];
                 if ( _wpcf_is_checkboxes_field( $field_name ) ) {
 
+                    $orginal = $query['meta_query'][$index];
+
+                    unset($query['meta_query'][$index]);
+
                     // We'll use SQL regexp to find the checked items.
                     // Note that we are creating something here that
                     // then gets modified to a proper SQL REGEXP in
@@ -530,7 +534,6 @@ function wpcf_views_query( $query, $view_settings ) {
                     $field_name = substr( $field_name, 5 );
 
                     $meta_filter_required = true;
-                    $meta['compare'] = '=';
 
                     /* According to http://codex.wordpress.org/Class_Reference/WP_Meta_Query#Accepted_Arguments,
 					 * $meta['value'] can be an array or a string. In case of a string we additionally allow
@@ -543,29 +546,21 @@ function wpcf_views_query( $query, $view_settings ) {
 						// This can happen if $meta['value'] is a number, for example.
 						$values = array( $meta['value'] );
 					}
-
-                    $meta['value'] = ' REGEXP(';
-
                     $options = $opt[$field_name]['data']['options'];
 
-                    $count = 0;
                     foreach ( $values as $value ) {
-
                         foreach ( $options as $key => $option ) {
                             if ( $option['title'] == $value ) {
-                                if ( $count > 0 ) {
-                                    $meta['value'] .= '|';
-                                }
-                                $meta['value'] .= $key;
+                                $query['meta_query'][] = array(
+                                    'key' => $meta['key'],
+                                    'compare' => 'NOT IN' == $orginal['compare']? 'NOT LIKE':'LIKE',
+                                    'value' => $key,
+                                    'type' => 'CHAR',
+                                );
                                 break;
                             }
                         }
-                        $count++;
                     }
-
-                    $meta['value'] .= ')';
-
-                    $query['meta_query'][$index] = $meta;
                 }
             }
         }
@@ -574,7 +569,6 @@ function wpcf_views_query( $query, $view_settings ) {
     if ( $meta_filter_required ) {
         add_filter( 'get_meta_sql', 'wpcf_views_get_meta_sql', 10, 6 );
     }
-
     return $query;
 }
 

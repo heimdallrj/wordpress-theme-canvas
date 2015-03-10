@@ -1,9 +1,9 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/common/toolset-forms/classes/class.colorpicker.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/common/toolset-forms/classes/class.colorpicker.php $
+ * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
+ * $LastChangedRevision: 1069430 $
  * $LastChangedBy: iworks $
  *
  */
@@ -62,9 +62,23 @@ class WPToolset_Field_Colorpicker extends FieldFactory
     {
         
     }
+    
+    public function addTypeValidation($validation) {
+        $validation['hexadecimal'] = array(
+            'args' => array(
+                'hexadecimal'
+            ),
+            'message' => __( 'You can add valid hexadecimal.', 'wpv-views' ),
+        );
+        return $validation;
+    }
 
     public function metaform()
     {
+        $validation = $this->getValidationData();
+        $validation = $this->addTypeValidation($validation);
+        $this->setValidationData($validation);
+        
         $classes = array();
         $classes[] = 'js-wpt-colorpicker';
         $form = array();
@@ -75,7 +89,7 @@ class WPToolset_Field_Colorpicker extends FieldFactory
             '#value' => $this->getValue(),
             '#name' => $this->getName(),
             '#attributes' => array('class' => implode(' ', $classes )),
-            '#validate' => $this->getValidationData(),
+            '#validate' => $validation,
             '#after' => '',
             '#repetitive' => $this->isRepetitive(),
         );

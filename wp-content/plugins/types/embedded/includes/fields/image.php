@@ -1,15 +1,15 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/includes/fields/image.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/fields/image.php $
+ * $LastChangedDate: 2014-11-21 08:53:16 +0000 (Fri, 21 Nov 2014) $
+ * $LastChangedRevision: 1029976 $
  * $LastChangedBy: iworks $
  *
  */
+
 add_filter( 'wpcf_fields_type_image_value_get', 'wpcf_fields_image_value_filter' );
-add_filter( 'wpcf_fields_type_image_value_save',
-        'wpcf_fields_image_value_filter' );
+add_filter( 'wpcf_fields_type_image_value_save', 'wpcf_fields_image_value_filter' );
 
 // Do not wrap if 'url' is TRUE
 add_filter( 'types_view', 'wpcf_fields_image_view_filter', 10, 6 );
@@ -585,7 +585,9 @@ function wpcf_fields_image_get_data( $image ) {
     );
 
     // Strip GET vars
-    $image = strtok( $image, '?' );
+    if ( !apply_filters('wpcf_allow_questionmark_in_image_url', false) ) {
+        $image = strtok( $image, '?' );
+    }
 
     // Basic URL check
     if ( strpos( $image, 'http' ) != 0 ) {
@@ -661,9 +663,10 @@ function wpcf_fields_image_get_data( $image ) {
  * @return type 
  */
 function wpcf_fields_image_value_filter( $value ) {
-    if ( is_string( $value ) ) {
+    if ( is_string( $value ) && !apply_filters('wpcf_allow_questionmark_in_image_url', false) ) {
         return strtok( $value, '?' );
     }
+    return $value;
 }
 
 /**

@@ -121,7 +121,7 @@ class WPToolset_Field_Date_Scripts
             'yearMin' => intval( self::timetodate( self::$_mintimestamp, 'Y' ) ) + 1,
             'yearMax' => self::timetodate( self::$_maxtimestamp, 'Y' ),
 			'ajaxurl' => admin_url('admin-ajax.php', null),
-			'readonly' => esc_js( __( 'This is a readonly date input', 'wpv-views' ) ),
+			'readonly' => esc_js( __( 'This is a read-only date input', 'wpv-views' ) ),
             'readonly_image' => $calendar_image_readonly,
         );
         wp_localize_script( 'wptoolset-field-date', 'wptDateData', $js_data );

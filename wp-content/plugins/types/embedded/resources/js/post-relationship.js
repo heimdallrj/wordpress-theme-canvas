@@ -426,6 +426,7 @@ jQuery(document).ready(function($) {
         return false;
     });
     jQuery('.wpcf-pr-delete-ajax').live('click', function() {
+        var $button = $(this), $table = $button.parents('.js-types-relationship-child-posts').find('table');
         var answer = confirm(wpcf_pr_del_warning);
         if (answer == false) {
             return false;
@@ -452,6 +453,17 @@ jQuery(document).ready(function($) {
                 object.next().fadeOut(function() {
                     jQuery(this).remove();
                 });
+                /**
+                 * reload
+                 */
+                selectedIndex = $('#wpcf-post-relationship .wpcf-pr-pagination-select').prop('selectedIndex');
+                if ( $('tbody tr', $table).length < 2 ) {
+                    if ( selectedIndex ) {
+                        selectedIndex--;
+                        $('#wpcf-post-relationship .wpcf-pr-pagination-select').prop( 'selectedIndex', selectedIndex);
+                    }
+                }
+                $('#wpcf-post-relationship .wpcf-pr-pagination-select').trigger('change');
             }
         });
         return false;

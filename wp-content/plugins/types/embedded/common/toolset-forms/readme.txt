@@ -30,6 +30,12 @@ function my_toolset_valid_image_extentions($valid_extensions)
 
 = Changelog =
 
+2014-12-29
+
+- fixed display CPT in CT
+
+2014-11-18 - plugins release - CRED 1.3.4, Types 1.6.4
+
 2014-11-13
 
 - Fixed a problem with missing taxonomies after form fail:

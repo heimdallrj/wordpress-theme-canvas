@@ -142,6 +142,24 @@ function wpcf_admin_general_settings_form() {
     return $form;
 }
 
+function wpcf_admin_toolset_messages_form()
+{
+    $settings = wpcf_get_settings();
+    $form = array();
+
+    $form['help-box'] = array(
+        '#id' => 'help_box',
+        '#name' => 'wpcf_settings[toolset_messages]',
+        '#type' => 'checkbox',
+        '#title' => __('Disable all messages about other Toolset components', 'wpcf'),
+        '#default_value' => isset($settings['toolset_messages'])? $settings['toolset_messages']:0,
+    );
+    $form['spinner'] = array(
+        '#type' => 'markup',
+        '#markup' => '<span class="spinner" style="float:left;"></span>',
+    );
+    return $form;
+}
 /**
  * Saves settings.
  * 
@@ -177,9 +195,8 @@ function wpcf_admin_image_settings_form_submit($form) {
     wpcf_admin_message_store(__('Settings saved', 'wpcf'));
 }
 
-
 function wpcf_admin_general_settings_form_submit($form) {
-    
+
     $settings = wpcf_get_settings();
     $data = $_POST['wpcf_settings'];
     foreach (array('register_translations_on_import','help_box') as $setting) {

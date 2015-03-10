@@ -2,9 +2,9 @@
 
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/common/toolset-forms/bootstrap.php $
- * $LastChangedDate: 2014-10-23 10:33:39 +0000 (Thu, 23 Oct 2014) $
- * $LastChangedRevision: 1012677 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/common/toolset-forms/bootstrap.php $
+ * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
+ * $LastChangedRevision: 1069430 $
  * $LastChangedBy: iworks $
  *
  */
@@ -39,11 +39,11 @@ class WPToolset_Forms_Bootstrap
     {
         // Custom conditinal AJAX check
         add_action( 'wp_ajax_wptoolset_custom_conditional',
-                array($this, 'ajaxCustomConditional') );
+            array($this, 'ajaxCustomConditional') );
 
         // Date conditinal AJAX check
         add_action( 'wp_ajax_wptoolset_conditional',
-                array($this, 'ajaxConditional') );
+            array($this, 'ajaxConditional') );
 
         // Date extended localization AJAX callback
         add_action( 'wp_ajax_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
@@ -51,7 +51,7 @@ class WPToolset_Forms_Bootstrap
 
         // File media popup
         if ( (isset( $_GET['context'] ) && $_GET['context'] == 'wpt-fields-media-insert') || (isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'],
-                        'context=wpt-fields-media-insert' ) !== false)
+            'context=wpt-fields-media-insert' ) !== false)
         ) {
             require_once WPTOOLSET_FORMS_ABSPATH . '/classes/class.file.php';
             add_action( 'init', array('WPToolset_Field_File', 'mediaPopup') );
@@ -76,10 +76,10 @@ class WPToolset_Forms_Bootstrap
     }
 
     // returns HTML
-//    public function fieldEdit($form_id, $config) {
-//        $form = $this->form( $form_id, array() );
-//        return $form->editform( $config );
-//    }
+    //    public function fieldEdit($form_id, $config) {
+    //        $form = $this->form( $form_id, array() );
+    //        return $form->editform( $config );
+    //    }
 
     public function form( $form_id, $config = array() )
     {
@@ -212,36 +212,35 @@ class WPToolset_Forms_Bootstrap
         if (!$query->is_main_query()) {
             return;
         }
-
+        
+        /**
+         * check terms
+         */
+        if( $query->is_tax() ) 
+            $term =  get_queried_object(); 
+        
+        if ( empty($term) ) {
+            return;
+        }
+        /**
+         * check Types CPT
+         */
         $types_cpt = get_option( 'wpcf-custom-types');
         if (!is_array($types_cpt) || empty($types_cpt)) {
             return;
         }
-        $cpt_to_add = array();
         /**
-         * check category
+         * add cpt
          */
-        if ( is_category() ) {
-            foreach($types_cpt as $cpt_slug => $cpt) {
-                if (array_key_exists('taxonomies', $cpt) && is_array($cpt['taxonomies'])) {
-                    foreach($cpt['taxonomies'] as $tax_slug => $value) {
-                        if ('category' == $tax_slug && $value) {
-                            $cpt_to_add[] = $cpt_slug;
-                        }
-                    }
-                }
-            }
-        }
-        /**
-         * check tags
-         */
-        if ( is_tag() ) {
-            foreach($types_cpt as $cpt_slug => $cpt) {
-                if (array_key_exists('taxonomies', $cpt) && is_array($cpt['taxonomies'])) {
-                    foreach($cpt['taxonomies'] as $tax_slug => $value) {
-                        if ('post_tag' == $tax_slug && $value) {
-                            $cpt_to_add[] = $cpt_slug;
-                        }
+        foreach($types_cpt as $cpt_slug => $cpt) {
+            if (array_key_exists('taxonomies', $cpt) && is_array($cpt['taxonomies'])) {
+                foreach($cpt['taxonomies'] as $tax_slug => $value) {
+                    if (
+                        isset($term->taxonomy)
+                        && $term->taxonomy == $tax_slug
+                        && $value
+                    ) {
+                        $cpt_to_add[] = $cpt_slug;
                     }
                 }
             }
@@ -249,18 +248,21 @@ class WPToolset_Forms_Bootstrap
         /**
          * change query if some CPT use this
          */
-        if (!empty($cpt_to_add)) {
-            /**
-             * remeber if is empty, then is post
-             */
-            $current_types = $query->get('post_type');
-            if(empty($current_types)) {
-                $cpt_to_add[] = 'post';
-            } else {
-                $cpt_to_add = array_merge($current_types, $cpt_to_add);
-            }
-            $query->set('post_type', $cpt_to_add);
+        if (empty($cpt_to_add)) {
+            return;
         }
+        /**
+         * remeber if is empty, then is post
+         */
+        $current_types = $query->get('post_type');
+        if(empty($current_types)) {
+            $cpt_to_add[] = 'post';
+        } else if ( is_array($current_types) ) {
+            $cpt_to_add = array_merge($current_types, $cpt_to_add);
+        } else {
+            $cpt_to_add[] = $current_types;
+        }
+        $query->set('post_type', $cpt_to_add);
     }
 }
 

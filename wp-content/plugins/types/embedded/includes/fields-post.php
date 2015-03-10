@@ -4,7 +4,7 @@
  * Edit post page functions
  *
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/includes/fields-post.php $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/fields-post.php $
  * $LastChangedDate: 2014-10-29 15:57:36 +0000 (Wed, 29 Oct 2014) $
  * $LastChangedRevision: 1016002 $
  * $LastChangedBy: iworks $

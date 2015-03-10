@@ -8,10 +8,10 @@
  * Values:
  * 0 nothing (ignore), 1 copy, 2 translate
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/includes/wpml.php $
- * $LastChangedDate: 2014-08-27 08:49:51 +0000 (Wed, 27 Aug 2014) $
- * $LastChangedRevision: 973824 $
- * $LastChangedBy: brucepearson $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/wpml.php $
+ * $LastChangedDate: 2015-01-28 06:42:34 +0000 (Wed, 28 Jan 2015) $
+ * $LastChangedRevision: 1077234 $
+ * $LastChangedBy: iworks $
  *
  */
 
@@ -1194,18 +1194,23 @@ function wpcf_wpml_warnings_init()
      * check is configuration done?!
      */
     global $sitepress, $sitepress_settings;
-    if ( !array_key_exists( 'st', $sitepress_settings ) ) {
+    if ( icl_get_setting('st') ) {
         return;
     }
 
-	if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
-		wp_types_default_language_warning();
-	} elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
-		wp_types_st_language_warning();
-	} else {
-		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
-		ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
-	}
+    /**
+     * do that only when version of WPML is lower then 3.2
+     */
+    if ( defined('ICL_SITEPRESS_VERSION') && version_compare( ICL_SITEPRESS_VERSION, '3.2', '<' ) ) {
+        if (isset($sitepress_settings[ 'st' ]) && $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
+            wp_types_default_language_warning();
+        } elseif (isset($sitepress_settings[ 'st' ]) && $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
+            wp_types_st_language_warning();
+        } else {
+            ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
+            ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
+        }
+    }
 }
 
 function wpcf_wpml_warning()
@@ -1261,7 +1266,7 @@ function wp_types_st_language_warning()
 	if ( class_exists( 'ICL_AdminNotifier' ) && defined( 'ICL_SITEPRESS_VERSION' ) ) {
 		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
 		static $called = false;
-		if ( !$called ) {
+		if ( !$called && isset($sitepress_settings[ 'st' ])) {
 			$st_language_code = $sitepress_settings[ 'st' ][ 'strings_language' ];
 			$st_language = $sitepress->get_display_language_name($st_language_code, $sitepress->get_admin_language());
 

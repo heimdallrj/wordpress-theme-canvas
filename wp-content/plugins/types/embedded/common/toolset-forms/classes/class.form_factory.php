@@ -10,9 +10,9 @@ define( "CLASS_NAME_PREFIX", "WPToolset_Field_" );
  * Creation Form Class
  * @author onTheGo System
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/common/toolset-forms/classes/class.form_factory.php $
- * $LastChangedDate: 2014-10-23 10:33:39 +0000 (Thu, 23 Oct 2014) $
- * $LastChangedRevision: 1012677 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/common/toolset-forms/classes/class.form_factory.php $
+ * $LastChangedDate: 2015-01-28 06:42:34 +0000 (Wed, 28 Jan 2015) $
+ * $LastChangedRevision: 1077234 $
  * $LastChangedBy: iworks $
  *
  *
@@ -189,10 +189,17 @@ class FormFactory extends FormAbstract
         if ( empty( $value ) ) $value = array(null);
         elseif ( !is_array( $value ) ) $value = array($value);
         $count = 0;
-        foreach ( $value as $val ) {
+               
+        //Fix if i get skype i receive skype i have 2 elements array in $value !!
+        if ($config['type']=='skype') {
+            if (isset($value['style'])) unset($value['style']);
+            if (isset($value['button_style'])) unset($value['button_style']);
+        }
+        
+        foreach ( $value as $val ) {            
             if ( !empty( $config['repetitive'] ) ) {
                 $_gnf = $_cfg['name'] = "{$global_name_field}[{$count}]";
-            }
+            }     
             //CHECKGEN			
             if ( isset($_cfg['validation']) && 
                  is_array($_cfg['validation'])  && 
@@ -200,7 +207,7 @@ class FormFactory extends FormAbstract
                  !is_admin() && $_SERVER['REQUEST_METHOD'] == 'POST' &&
                  isset( $_GET['_tt'] ) && 
                  !isset( $_GET['_success'] ) && 
-                 !isset( $_GET['_success_message'] )  ) 
+                 !isset( $_GET['_success_message'] )  )
             {
                 $_cfg['validate'] = 1;	
             }
@@ -224,7 +231,7 @@ class FormFactory extends FormAbstract
                 }
                 $this->form[$global_name_field] = $form;
                 $this->field_count++;
-                $htmlArray[] = $this->theForm->renderElements( $form );
+                $htmlArray[] = $this->theForm->renderElements( $form );                
                 if ( empty( $config['repetitive'] ) ) break;
                 $count++;
             } else {
@@ -239,7 +246,7 @@ class FormFactory extends FormAbstract
                         $field->get_error_message()
                     );
                 }
-            }
+            }            
         }
         if ( !empty( $htmlArray ) && isset($config['repetitive']) && $config['repetitive'] ) {
             $_gnf = $_cfg['name'] = "{$global_name_field}[%%{$count}%%]";
@@ -378,7 +385,7 @@ class FormFactory extends FormAbstract
                 {
                     $mess = $field->getTitle().' Field is required';
                     return new WP_Error( 'wptoolset_forms', $mess,
-                                array($field->getTitle().' Field is required') );;
+                                array($field->getTitle().' Field is required') );
                 }
             }     
         }

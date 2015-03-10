@@ -2,9 +2,9 @@
 /*
  * Post relationship class.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/classes/relationship.php $
- * $LastChangedDate: 2014-10-23 10:33:39 +0000 (Thu, 23 Oct 2014) $
- * $LastChangedRevision: 1012677 $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/classes/relationship.php $
+ * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
+ * $LastChangedRevision: 1069430 $
  * $LastChangedBy: iworks $
  *
  */
@@ -387,30 +387,40 @@ class WPCF_Relationship
     function add_new_child($parent_id, $post_type)
     {
         global $wpdb;
-
         $parent = get_post( $parent_id );
         if ( empty( $parent ) ) {
             return new WP_Error( 'wpcf-relationship-no-parent', 'No parent' );
         }
         $new_post = array(
-            'post_title' => ' ', // WP requires at least title with space
+            'post_title' => __('New'). ': '.$post_type,
             'post_type' => $post_type,
             'post_status' => 'draft',
         );
         $id = wp_insert_post( $new_post, true );
-        if ( !is_wp_error( $id ) ) {
-            // Mark that it is new post
-            update_post_meta( $id, '_wpcf_relationship_new', 1 );
-            // Save relationship
-            update_post_meta( $id,
-                    '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
-            // Fix title
-            $wpdb->update( $wpdb->posts,
-                    array('post_title' => $post_type . ' ' . $id),
-                    array('ID' => $id), array('%s'), array('%d') );
-            do_action( 'wpcf_relationship_add_child', get_post( $id ), $parent );
-            wp_cache_flush();
+        /**
+         * return wp_error
+         */
+        if ( is_wp_error( $id ) ) {
+            return $id;
         }
+        /**
+         * Mark that it is new post
+         */
+        update_post_meta( $id, '_wpcf_relationship_new', 1 );
+        /**
+         * Save relationship
+         */
+        update_post_meta( $id, '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
+        /**
+         * Fix title
+         */
+        $wpdb->update(
+            $wpdb->posts,
+            array('post_title' => $post_type . ' ' . $id),
+            array('ID' => $id), array('%s'), array('%d')
+        );
+        do_action( 'wpcf_relationship_add_child', get_post( $id ), $parent );
+        wp_cache_flush();
         return $id;
     }
 
@@ -506,5 +516,46 @@ class WPCF_Relationship
         }
         die();
     }
+
+    /**
+     * Meta box form on post edit page.
+     *
+     * @param type $parent Parent post
+     * @param type $post_type Child post type
+     * @return type string HTML formatted list
+     */
+    function child_list($parent, $post_type)
+    {
+        if ( is_integer( $parent ) ) {
+            $parent = get_post( $parent );
+        }
+        $output = '';
+        require_once dirname( __FILE__ ) . '/relationship/form-child.php';
+        $this->child_form = new WPCF_Relationship_Child_Form(
+                        $parent,
+                        $post_type,
+                        $this->settings( $parent->post_type, $post_type )
+                    );
+        foreach($this->child_form->children as $child) {
+            $output .= sprintf(
+                '<li>%s</li>',
+                apply_filters('post_title', $child->post_title)
+            );
+        }
+        if ( $output ) {
+            $output = sprintf(
+                '<ul>%s</ul>',
+                $output
+            );
+        } else {
+            $output = sprintf(
+                '<p class="info">%s</p>',
+                $this->child_form->child_post_type_object->labels->not_found
+            );
+        }
+
+        return $output;
+    }
+
 
 }

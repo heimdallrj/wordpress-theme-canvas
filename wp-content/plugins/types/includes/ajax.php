@@ -32,7 +32,7 @@ function wpcf_ajax() {
                 'output' => ''
             ));
             break;
-			
+
 		case 'remove_from_history2':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             $fields = wpcf_admin_fields_get_fields( true, true,false,'wpcf-usermeta');
@@ -43,8 +43,8 @@ function wpcf_ajax() {
             echo json_encode(array(
                 'output' => ''
             ));
-            break;	
-			
+            break;
+
 		case 'deactivate_user_group':
             require_once WPCF_INC_ABSPATH . '/fields.php';
 			require_once WPCF_INC_ABSPATH . '/usermeta.php';
@@ -65,7 +65,7 @@ function wpcf_ajax() {
                 ));
             }
             break;
-			
+
 		case 'activate_user_group':
             require_once WPCF_INC_ABSPATH . '/fields.php';
 			require_once WPCF_INC_ABSPATH . '/usermeta.php';
@@ -85,8 +85,8 @@ function wpcf_ajax() {
                     'output' => __('Error occured', 'wpcf')
                 ));
             }
-            break;	
-			
+            break;
+
 		case 'delete_usermeta_group':
             require_once WPCF_INC_ABSPATH . '/fields.php';
 			require_once WPCF_INC_ABSPATH . '/usermeta.php';
@@ -98,8 +98,8 @@ function wpcf_ajax() {
                 . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
                 'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
             ));
-            break;	
-        
+            break;
+
 		case 'usermeta_insert_existing':
 			require_once WPCF_INC_ABSPATH . '/fields.php';
             require_once WPCF_INC_ABSPATH . '/fields-form.php';
@@ -108,10 +108,10 @@ function wpcf_ajax() {
             wpcf_form_render_js_validation();
             break;
 		/* End Usertmeta actions*/
-		
-		
-		
-		
+
+
+
+
 		case 'fields_insert':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             require_once WPCF_INC_ABSPATH . '/fields-form.php';
@@ -564,20 +564,22 @@ function wpcf_ajax() {
             break;
 
         case 'cb_save_empty_migrate':
-            $output = '<span style="color:red;">'
-                    . __('Wrong field specified', 'wpcf') . '</div>';
+            $output = sprintf(
+                '<span style="color:red;">%s</div>',
+                __('Migration process is not yet finished - please save group first, then change settings of this field.', 'wpcf')
+            );
             if (isset($_GET['field']) && isset($_GET['subaction'])) {
                 require_once WPCF_INC_ABSPATH . '/fields.php';
                 $option = $_GET['meta_type'] == 'usermeta' ? 'wpcf-usermeta' : 'wpcf-fields';
                 $meta_type = $_GET['meta_type'];
                 $field = wpcf_admin_fields_get_field($_GET['field'], false, false,
                         false, $option);
-                
+
                 $_txt_updates = $meta_type == 'usermeta' ? __( '%d users require update',
                                 'wpcf' ) : __( '%d posts require update', 'wpcf' );
                 $_txt_no_updates = $meta_type == 'usermeta' ? __('No users require update', 'wpcf') : __('No posts require update', 'wpcf');
                 $_txt_updated = $meta_type == 'usermeta' ? __('Users updated', 'wpcf') : __('Posts updated', 'wpcf');
-                
+
                 if (!empty($field)) {
                     if ($_GET['subaction'] == 'save_check'
                             || $_GET['subaction'] == 'do_not_save_check') {

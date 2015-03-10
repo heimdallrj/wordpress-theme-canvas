@@ -137,6 +137,17 @@ class WPToolset_Cake_Validation {
     }
 
     /**
+     * Checks if a value is valid hexadecimal.
+     *
+     * @param string $check Value to check
+     * @return boolean Succcess
+     * @access public
+     */
+    function hexadecimal($check) {
+        return preg_match('/^#[a-f0-9]{6}$/i', $check);
+    }
+
+    /**
      * Checks that a string contains only integer or letters
      *
      * Returns true if string contains only integer or letters
@@ -760,7 +771,7 @@ class WPToolset_Cake_Validation {
      * @return boolean Succcess
      * @access public
      */
-    function integer($check) {        
+    function integer($check) {
         return is_int(intval($check));
     }
 

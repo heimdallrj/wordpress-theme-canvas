@@ -17,9 +17,12 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
          * @param string $text_area
          * @param boolean $standard_v is this a standard V button
          */
-        function add_form_button( $context, $text_area = 'textarea#content', $standard_v = true, $add_views = false, $codemirror_button = false ) {
+        function add_form_button( $context, $text_area = '', $standard_v = true, $add_views = false, $codemirror_button = false ) {
             global $wp_version;
-
+            
+            if ( empty($context) &&  $text_area == '' ){
+                return;
+            }
             // WP 3.3 changes ($context arg is actually a editor ID now)
             if ( version_compare( $wp_version, '3.1.4', '>' ) && !empty( $context ) ) {
                 $text_area = $context;
@@ -90,7 +93,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $dropdown_class = 'js-editor_addon_dropdown-'.$this->name;
             $icon_class = 'js-wpv-shortcode-post-icon-'.$this->name;
 			if ( $this->name == 'wpv-views' ) {
-				$button_label = __( 'Views', 'wpv-views' );
+				$button_label = __( 'Fields and Views', 'wpv-views' );
 			} else if ( $this->name == 'types' ) {
 				$button_label = __( 'Types', 'wpv-views' );
 			} else {
@@ -318,7 +321,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $dropdown_class = 'js-editor_addon_dropdown-'.$this->name;
             $icon_class = 'js-wpv-shortcode-post-icon-'.$this->name;
             if ( $this->name == 'wpv-views' ) {
-				$button_label = __( 'Views', 'wpv-views' );
+				$button_label = __( 'Fields and Views', 'wpv-views' );
 			} else if ( $this->name == 'types' ) {
 				$button_label = __( 'Types', 'wpv-views' );
 			} else {
@@ -744,29 +747,6 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             return $plugin_array;
         }
     }
-    
-    if( !function_exists('editor_add_js') )
-    {
-        function editor_add_js() {
-            global $pagenow;
-
-           if ( 
-            $pagenow == 'post.php' ||
-            $pagenow == 'post-new.php' ||
-            ( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) &&
-                                          ( $_GET['page'] == 'views-editor' ||
-                                            $_GET['page'] == 'view-archives-editor' ||
-                                            $_GET['page'] == 'dd_layouts_edit') ) ) // add the new Views edit screens
-            ) {
-
-
-                wp_enqueue_script( 'icl_editor-script',
-                        EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js',
-                        array() );
-            }
-        }
-    }
-    
 
     /**
      * Renders JS for inserting shortcode from thickbox popup to editor.

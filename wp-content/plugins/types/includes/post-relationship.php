@@ -76,10 +76,20 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
 
     $options = array();
 
+    /**
+     * build excluded post types
+     */
+    $excluded_post_types = $wpcf->excluded_post_types;
+    $excluded_post_types[] = $post_type['slug'];
+
     foreach ( $post_types as $temp_post_type_slug => $temp_post_type ) {
-        if ( in_array( $temp_post_type_slug,
-                        array($post_type['slug']) + $wpcf->excluded_post_types )
-                || !$temp_post_type->show_ui ) {
+        if (
+            in_array( $temp_post_type_slug, $excluded_post_types )
+            || (
+                !$temp_post_type->show_ui
+                && !apply_filters('wpcf_show_ui_hide_in_relationships', true)
+            )
+        ) {
             continue;
         }
         // Check if it's in has
@@ -114,9 +124,13 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
     );
     $options = array();
     foreach ( $post_types as $temp_post_type_slug => $temp_post_type ) {
-        if ( in_array( $temp_post_type_slug,
-                        array($post_type['slug']) + $wpcf->excluded_post_types )
-                || !$temp_post_type->show_ui ) {
+        if (
+            in_array( $temp_post_type_slug, $excluded_post_types )
+            || (
+                !$temp_post_type->show_ui
+                && !apply_filters('wpcf_show_ui_hide_in_relationships', true)
+            )
+        ) {
             continue;
         }
         // Check if it already belongs
@@ -246,8 +260,7 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     wp_enqueue_style( 'types' );
     wpcf_admin_ajax_head( 'Edit fields', 'wpcf' );
     // Process submit
-    if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'],
-                    'pt_edit_fields' ) ) {
+    if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'pt_edit_fields' ) ) {
         $relationships[$parent][$child]['fields_setting'] = $_POST['fields_setting'];
         $relationships[$parent][$child]['fields'] = isset( $_POST['fields'] ) ? $_POST['fields'] : array();
         update_option( 'wpcf_post_relationship', $relationships );
@@ -264,8 +277,7 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     $options_cf = array();
     $repetitive_warning = false;
     $repetitive_warning_markup = array();
-    $repetitive_warning_txt = __( 'Repeating fields should not be used in child posts. Types will update all field values.',
-            'wpcf' );
+    $repetitive_warning_txt = __( 'Repeating fields should not be used in child posts. Types will update all field values.', 'wpcf' );
     foreach ( $groups as $group ) {
         $fields = wpcf_admin_fields_get_fields_by_group( $group['id'] );
         foreach ( $fields as $key => $cf ) {
@@ -301,7 +313,8 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
         '#name' => 'fields_setting',
         '#options' => array(
             __( 'Title, all custom fields and parents', 'wpcf' ) => 'all_cf',
-            __( 'All fields, including the standard post fields', 'wpcf' ) => 'all_cf_standard',
+            __( 'Do not show management options for this post type', 'wpcf' ) => 'only_list',
+            __( 'All fields, including the standard post fields', 'wpcf' ) => 'all_cf_standardll_cf_standard',
             __( 'Specific fields', 'wpcf' ) => 'specific',
         ),
         '#default_value' => empty( $data['fields_setting'] ) ? 'all_cf' : $data['fields_setting'],
@@ -363,7 +376,9 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
             if (jQuery('input[name="fields_setting"]:checked').val() == 'specific') {
                 jQuery('#wpcf-specific').show();
             } else {
-    <?php if ( $repetitive_warning ) { ?>
+    <?php if ( $repetitive_warning && 'only_list' != $form['select']['#default_value']) { 
+
+?>
                     jQuery('#wpcf-repetitive-warning').show();
         <?php
     }
@@ -375,10 +390,10 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
                 } else {
                     jQuery('#wpcf-specific').slideUp();
     <?php if ( $repetitive_warning ) { ?>
+                    if ( 'only_list' != jQuery('input[name="fields_setting"]:checked').val()) {
                         jQuery('#wpcf-repetitive-warning').show();
-        <?php
-    }
-    ?>
+                    }
+        <?php } ?>
                 }
             });
         });

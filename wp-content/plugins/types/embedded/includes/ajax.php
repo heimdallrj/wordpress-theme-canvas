@@ -98,7 +98,9 @@ function wpcf_ajax_embedded() {
                     $id = $wpcf->relationship->add_new_child( $post->ID,
                             $post_type );
 
-                    if ( !is_wp_error( $id ) ) {
+                    if ( is_wp_error( $id ) ) {
+                        $output = $id->get_error_message();
+                    } else {
                         /*
                          * Here we set Relationship
                          * CHECKPOINT
@@ -120,8 +122,6 @@ function wpcf_ajax_embedded() {
                             $output = __( 'Error creating post relationship',
                                     'wpcf' );
                         }
-                    } else {
-                        $output = $id->get_error_message();
                     }
                 } else {
                     $output = __( 'Error getting parent post', 'wpcf' );

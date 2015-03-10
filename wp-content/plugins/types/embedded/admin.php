@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.4/embedded/admin.php $
- * $LastChangedDate: 2014-08-22 01:02:43 +0000 (Fri, 22 Aug 2014) $
- * $LastChangedRevision: 970205 $
- * $LastChangedBy: brucepearson $
+ * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/admin.php $
+ * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
+ * $LastChangedRevision: 1069430 $
+ * $LastChangedBy: iworks $
  *
  */
 require_once(WPCF_EMBEDDED_ABSPATH . '/common/visual-editor/editor-addon.class.php');
@@ -185,42 +185,6 @@ function wpcf_form( $id, $form = array() ) {
     $new_form->autoHandle( $id, $form );
     $wpcf_forms[$id] = $new_form;
     return $wpcf_forms[$id];
-}
-
-/**
- * Add submit button, cancel button and help link to the popup.
- *
- */
-function wpcf_form_popup_helper( $form, $submit_text = '', $cancel_text = '',
-        $help = array() ) {
-    if ( $submit_text ) {
-        $form['submit'] = array(
-            '#type' => 'submit',
-            '#name' => 'submit',
-            '#value' => $submit_text,
-            '#attributes' => array('class' => 'button-primary'),
-        );
-    }
-    if ( $cancel_text ) {
-        $form['cancel'] = array(
-            '#type' => 'button',
-            '#name' => 'cancel',
-            '#value' => $cancel_text,
-            '#attributes' => array('class' => 'button-secondary',
-                'onclick' => 'window.parent.jQuery(\'#TB_closeWindowButton\').click();return true;'),
-            '#before' => ' ',
-        );
-    }
-    if ( $help ) {
-        $form = array_reverse( $form, true );
-        $form['help'] = array(
-            '#type' => 'markup',
-            '#markup' => '<a class="wpcf-help-link" href="' . $help['url'] . '" target="_blank">' . $help['text'] . '</a>',
-        );
-        $form = array_reverse( $form, true );
-    }
-
-    return $form;
 }
 
 /**
