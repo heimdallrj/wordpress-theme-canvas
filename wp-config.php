@@ -78,7 +78,7 @@ define('WPLANG', '');
  * It is strongly recommended that plugin and theme developers use WP_DEBUG
  * in their development environments.
  */
-define('WP_DEBUG', true);
+define('WP_DEBUG', false);
 
 /**
  * Speed: Set WordPress Post Revisions
@@ -119,7 +119,7 @@ define('AUTOSAVE_INTERVAL', 240 ); // the value should be in seconds!
 /**
  * Easily Move Your WordPress Website
  */
-define('RELOCATE',true); // We're not done yet!
+//define('RELOCATE',true); // We're not done yet!
 
 /**
  * Disable internal Wp-Cron function
