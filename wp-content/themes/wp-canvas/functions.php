@@ -44,11 +44,11 @@ add_filter('the_generator', 'th_remove_version');
  * @ sidebars, admin, theme-support, other
  */
 include_once('inc/functions-sidebar.php');
-include_once('inc/functions-admin.php');
+//include_once('inc/functions-admin.php');
 include_once('inc/functions-custom.php');
 include_once('inc/functions-theme-supports.php');
-include_once('inc/functions-custom-admin-sections.php');
-include_once('inc/functions-custom-general-settings.php');
+//include_once('inc/functions-custom-admin-sections.php');
+//include_once('inc/functions-custom-general-settings.php');
 
 /**
  * Post Types

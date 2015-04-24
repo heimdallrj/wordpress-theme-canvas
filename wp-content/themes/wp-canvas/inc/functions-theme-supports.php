@@ -3,12 +3,13 @@
 /*
  * post-formats
  */
-add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) ); 
+//add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) ); 
 
 /*
  * add post-thumbnail support 
  */
-add_theme_support( 'post-thumbnails', array( 'post', 'page' ) );
+//add_theme_support( 'post-thumbnails', array( 'post', 'page' ) );
+add_theme_support( 'post-thumbnails' );
 
 /*
  * custom-background
