@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/admin.php $
- * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
- * $LastChangedRevision: 1069430 $
- * $LastChangedBy: iworks $
  *
  */
 require_once(WPCF_EMBEDDED_ABSPATH . '/common/visual-editor/editor-addon.class.php');
@@ -52,21 +48,18 @@ function wpcf_embedded_admin_init_hook() {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields/file.php';
         // Add types button
         add_filter( 'attachment_fields_to_edit', 'wpcf_fields_file_attachment_fields_to_edit_filter', PHP_INT_MAX, 2 );
-        // Add JS
-        add_action( 'admin_head', 'wpcf_fields_file_media_admin_head' );
         // Filter media TABs
-        add_filter( 'media_upload_tabs',
-                'wpcf_fields_file_media_upload_tabs_filter' );
+        add_filter( 'media_upload_tabs', 'wpcf_fields_file_media_upload_tabs_filter' );
     }
 
-    register_post_type( 'wp-types-group',
+    register_post_type( TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
             array(
         'public' => false,
         'label' => 'Types Groups',
         'can_export' => false,
             )
     );
-    register_post_type( 'wp-types-user-group',
+    register_post_type( TYPES_USER_META_FIELD_GROUP_CPT_NAME,
             array(
         'public' => false,
         'label' => 'Types User Groups',
@@ -157,14 +150,15 @@ function wpcf_admin_fields_postfields_styles(){
 
 //    $groups = wpcf_admin_fields_get_groups();
     $groups = wpcf_admin_post_get_post_groups_fields( wpcf_admin_get_edited_post() );
-    echo '<style type="text/css">';
+
     if ( !empty( $groups ) ) {
+		echo '<style type="text/css">';
         foreach ( $groups as $group ) {
             echo str_replace( "}", "}\n",
                     wpcf_admin_get_groups_admin_styles_by_group( $group['id'] ) );
         }
+		echo '</style>';
     }
-    echo '</style>';
 }
 
 /**
@@ -287,22 +281,23 @@ function wpcf_custom_fields_to_be_copied( $copied_fields, $original_post_id ) {
  */
 function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
     $messages = array(
-        'required' => __( 'This field is required', 'wpcf' ),
-        'email' => __( 'Please enter a valid email address', 'wpcf' ),
-        'url' => __( 'Please enter a valid URL address', 'wpcf' ),
-        'date' => __( 'Please enter a valid date', 'wpcf' ),
-        'digits' => __( 'Please enter numeric data', 'wpcf' ),
-        'number' => __( 'Please enter numeric data', 'wpcf' ),
-        'alphanumeric' => __( 'Letters, numbers, spaces or underscores only please',
-                'wpcf' ),
-        'nospecialchars' => __( 'Letters, numbers, spaces, underscores and dashes only please',
-                'wpcf' ),
-        'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please',
-                'wpcf' ),
-        'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.',
-                'wpcf' ),
-        'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ),
-                strval( $sprintf ) ),
+        'required' => __( 'This field is required.', 'wpcf' ),
+        'email' => __( 'Please enter a valid email address.', 'wpcf' ),
+        'url' => __( 'Please enter a valid URL address.', 'wpcf' ),
+        'date' => __( 'Please enter a valid date.', 'wpcf' ),
+        'digits' => __( 'Please enter numeric data.', 'wpcf' ),
+        'number' => __( 'Please enter numeric data.', 'wpcf' ),
+        'alphanumeric' => __( 'Letters, numbers, spaces or underscores only please.', 'wpcf' ),
+        'nospecialchars' => __( 'Letters, numbers, spaces, underscores and dashes only please.', 'wpcf' ),
+        'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please.', 'wpcf' ),
+        'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.', 'wpcf' ),
+        'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ), strval( $sprintf ) ),
+        'minlength' => sprintf( __( 'Minimum of %s characters has not been reached.', 'wpcf' ), strval( $sprintf ) ),
+        /**
+         * see 
+         * https://support.skype.com/en/faq/FA10858/what-is-a-skype-name-and-how-do-i-find-mine
+         */
+        'skype' => __( 'Letters, numbers, dashes, underscores, commas and periods only please.', 'wpcf' ),
     );
     if ( $method ) {
         return isset( $messages[$method] ) ? $messages[$method] : '';
@@ -310,30 +305,66 @@ function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
     return $messages;
 }
 
+
+/**
+ * Sanitize admin notice.
+ *
+ * @param string $message
+ * @return string
+ */
+function wpcf_admin_message_sanitize( $message )
+{
+    $allowed_tags = array(
+        'a' => array(
+            'href' => array(),
+            'title' => array()
+        ),
+        'br' => array(),
+        'b' => array(),
+        'div' => array(),
+        'em' => array(),
+        'i' => array(),
+        'p' => array(),
+        'strong' => array(),
+    );
+    $message = wp_kses($message, $allowed_tags);
+    return stripslashes(html_entity_decode($message, ENT_QUOTES));
+}
+
 /**
  * Adds admin notice.
- * 
+ *
  * @param type $message
  * @param type $class 
  */
-function wpcf_admin_message( $message, $class = 'updated' ) {
-    add_action( 'admin_notices',
+function wpcf_admin_message( $message, $class = 'updated', $mode = 'action' )
+{
+    if ( 'action' == $mode ) {
+        add_action( 'admin_notices',
             create_function( '$a=1, $class=\'' . $class . '\', $message=\''
                     . htmlentities( $message, ENT_QUOTES ) . '\'',
-                    '$screen = get_current_screen(); if (!$screen->is_network) echo "<div class=\"message $class\"><p>" . stripslashes(html_entity_decode($message, ENT_QUOTES)) . "</p></div>";' ) );
+                        '$screen = get_current_screen(); if (!$screen->is_network) echo "<div class=\"message $class\"><p>" . wpcf_admin_message_sanitize ($message) . "</p></div>";' ) );
+    } elseif ( 'echo' == $mode ) {
+        printf(
+            '<div class="message %s"><p>%s</p></div>',
+            $class,
+            wpcf_admin_message_sanitize($message)
+        );
+    }
 }
 
 /**
  * Shows stored messages.
  */
-function wpcf_show_admin_messages() {
+function wpcf_show_admin_messages($mode = 'action')
+{
     $messages = get_option( 'wpcf-messages', array() );
     $messages_for_user = isset( $messages[get_current_user_id()] ) ? $messages[get_current_user_id()] : array();
     $dismissed = get_option( 'wpcf_dismissed_messages', array() );
     if ( !empty( $messages_for_user ) && is_array( $messages_for_user ) ) {
         foreach ( $messages_for_user as $message_id => $message ) {
             if ( !in_array( $message['keep_id'], $dismissed ) ) {
-                wpcf_admin_message( $message['message'], $message['class'] );
+                wpcf_admin_message( $message['message'], $message['class'], $mode );
             }
             if ( empty( $message['keep_id'] )
                     || in_array( $message['keep_id'], $dismissed ) ) {
@@ -351,8 +382,20 @@ function wpcf_show_admin_messages() {
  * @param type $class
  * @return type 
  */
-function wpcf_admin_message_store( $message, $class = 'updated',
-        $keep_id = false ) {
+function wpcf_admin_message_store( $message, $class = 'updated', $keep_id = false )
+{
+    /**
+     * Allow to store or note
+     *
+     * Filter allow to turn off storing messages in Types
+     *
+     * @since 1.6.6
+     *
+     * @param boolean $var default value is true to show messages
+     */
+    if (!apply_filters('wpcf_admin_message_store', true) ) {
+        return;
+    }
     $messages = get_option( 'wpcf-messages', array() );
     $messages[get_current_user_id()][md5( $message )] = array(
         'message' => $message,
@@ -537,46 +580,6 @@ function wpcf_admin_ajax_head( $title = '' ) {
 
     <?php
         }
-
-/**
- * Gets var from $_SERVER['HTTP_REFERER'].
- * 
- * @param type $var 
- */
-function wpcf_admin_get_var_from_referer( $var ) {
-    $value = false;
-    if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-        $parts = explode( '?', $_SERVER['HTTP_REFERER'] );
-        if ( !empty( $parts[1] ) ) {
-            parse_str( $parts[1], $vars );
-            if ( isset( $vars[$var] ) ) {
-                $value = $vars[$var];
-            }
-        }
-    }
-    return $value;
-}
-
-/**
- * Adds JS settings.
- * 
- * @staticvar array $settings
- * @param type $id
- * @param type $setting
- * @return string 
- */
-function wpcf_admin_add_js_settings( $id, $setting = '' ) {
-    static $settings = array();
-    $settings['wpcf_nonce_ajax_callback'] = '\'' . wp_create_nonce( 'execute' ) . '\'';
-    $settings['wpcf_cookiedomain'] = '\'' . COOKIE_DOMAIN . '\'';
-    $settings['wpcf_cookiepath'] = '\'' . COOKIEPATH . '\'';
-    if ( $id == 'get' ) {
-        $temp = $settings;
-        $settings = array();
-        return $temp;
-    }
-    $settings[$id] = $setting;
-}
 
 /**
  * Renders JS settings.

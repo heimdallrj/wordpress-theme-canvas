@@ -46,6 +46,10 @@ function wpcf_custom_taxonomies_default() {
             'choose_from_most_used' => 'Choose from the most used %s',
             'menu_name' => '%s',
         ),
+        'meta_box_cb' => array(
+            'disabled' => false,
+            'callback' => null,
+        ),
     );
 }
 
@@ -53,7 +57,7 @@ function wpcf_custom_taxonomies_default() {
  * Inits custom taxonomies.
  */
 function wpcf_custom_taxonomies_init() {
-    $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+    $custom_taxonomies = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
     if ( !empty( $custom_taxonomies ) ) {
         foreach ( $custom_taxonomies as $taxonomy => $data ) {
             wpcf_custom_taxonomies_register( $taxonomy, $data );
@@ -63,9 +67,9 @@ function wpcf_custom_taxonomies_init() {
 
 /**
  * Registers custom taxonomies.
- * 
+ *
  * @param type $post_type
- * @param type $data 
+ * @param type $data
  */
 function wpcf_custom_taxonomies_register( $taxonomy, $data ) {
     if ( !empty( $data['disabled'] ) ) {
@@ -133,6 +137,16 @@ function wpcf_custom_taxonomies_register( $taxonomy, $data ) {
     } else {
         $data['rewrite'] = false;
     }
+    /**
+     * meta_box_cb
+     */
+    if ( isset($data['meta_box_cb']['disabled'])) {
+        $data['meta_box_cb'] = false;
+    } else if ( isset($data['meta_box_cb']['callback']) && !empty($data['meta_box_cb']['callback']) ){
+        $data['meta_box_cb'] = $data['meta_box_cb']['callback'];
+    } else {
+        unset($data['meta_box_cb']);
+    }
     // Force removing capabilities here
     unset( $data['capabilities'] );
     register_taxonomy( $taxonomy,
@@ -142,11 +156,11 @@ function wpcf_custom_taxonomies_register( $taxonomy, $data ) {
 
 /**
  * Returns only active taxonomies.
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_get_active_custom_taxonomies() {
-    $taxonomies = get_option('wpcf-custom-taxonomies', array());
+    $taxonomies = get_option(WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array());
     foreach ($taxonomies as $taxonomy => $data) {
         if (!empty($data['disabled'])) {
             unset($taxonomies[$taxonomy]);

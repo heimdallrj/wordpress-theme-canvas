@@ -2,10 +2,6 @@
 /*
  * Post relationship class.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/classes/relationship.php $
- * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
- * $LastChangedRevision: 1069430 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -201,8 +197,8 @@ class WPCF_Relationship
     /**
      * Bulk saving children.
      *
-     * @param type $parent_id
-     * @param type $children
+     * @param int $parent_id
+     * @param array $children Array $child_id => $fields. For details about $fields see save_child().
      */
     function save_children($parent_id, $children)
     {
@@ -214,13 +210,13 @@ class WPCF_Relationship
     /**
      * Unified save child function.
      *
-     * @param type $child_id
-     * @param type $parent_id
+     * @param int $parent_id
+     * @param int $child_id
+     * @param array $save_fields
+     * @return bool|WP_Error
      */
     function save_child( $parent_id, $child_id, $save_fields = array() )
     {
-        global $wpdb;
-
         $parent = get_post( intval( $parent_id ) );
         $child = get_post( intval( $child_id ) );
         $post_data = array();
@@ -257,6 +253,7 @@ class WPCF_Relationship
 
         $post_data['post_title'] = $post_title;
         $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
+        $post_data['post_excerpt'] = isset( $save_fields['_wp_excerpt'] ) ? $save_fields['_wp_excerpt'] : $child->post_excerpt;
         $post_data['post_type'] = $child->post_type;
 
         // Check post status - if new, convert to 'publish' else keep remaining
@@ -289,7 +286,24 @@ class WPCF_Relationship
         }
         unset($cf);
 
+        /**
+         * avoid send data to children
+         */
+        if ( isset( $_POST['post_ID'] ) ) {
+            $temp_post_data = $_POST;
+            $_POST = array();
+            foreach( array('wpcf_post_relationship', 'post_ID', '_wptoolset_checkbox', 'wpcf', '_wpnonce') as $key ) {
+                if ( isset($temp_post_data[$key]) ) {
+                    $_POST[$key] = $temp_post_data[$key];
+                }
+            }
+        }
         $updated_id = wp_update_post( $post_data );
+        if ( isset($temp_post_data) ) {
+            $_POST = $temp_post_data;
+            unset($temp_post_data);
+        }
+
         if ( empty( $updated_id ) ) {
             return new WP_Error( 'relationship-update-post-failed', 'Updating post failed' );
         }
@@ -331,21 +345,21 @@ class WPCF_Relationship
 
         // Unset non-types
         unset( $save_fields['_wp_title'], $save_fields['_wp_body'],
-                $save_fields['parents'], $save_fields['taxonomies'] );
-        /*
-         *
-         *
-         *
-         *
-         *
-         *
+            $save_fields['parents'], $save_fields['taxonomies'] );
+
+        /**
+         * add filter to remove field name from error message
+         */
+        /** This filter is toolset-common/toolset-forms/classes/class.validation.php */
+        add_filter('toolset_common_validation_add_field_name_to_error', '__return_false', 1234, 1);
+
+        /**
          * UPDATE Loop over fields
          */
         foreach ( $save_fields as $slug => $value ) {
             if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
                 // Get field by slug
-                $field = wpcf_fields_get_field_by_slug( str_replace( WPCF_META_PREFIX,
-                                '', $slug ) );
+                $field = wpcf_fields_get_field_by_slug( str_replace( WPCF_META_PREFIX, '', $slug ) );
                 if ( empty( $field ) ) {
                     continue;
                 }
@@ -355,10 +369,12 @@ class WPCF_Relationship
                 $valid = wptoolset_form_validate_field( 'post', $config, $value );
                 if ( is_wp_error( $valid ) ) {
                     $errors = $valid->get_error_data();
-                    $msg = sprintf( __( 'Child post "%s" field "%s" not updated:',
-                                    'wpcf' ), $child->post_title, $field['name'] );
-                    wpcf_admin_message_store( $msg . ' ' . implode( ', ',
-                                    $errors ), 'error' );
+                    $msg = sprintf(
+                        __( 'Child post "%s" field "%s" not updated:', 'wpcf' ),
+                        $child->post_title,
+                        $field['name']
+                    );
+                    wpcf_admin_message_store( $msg . ' ' . implode( ', ', $errors ), 'error' );
                     continue;
                 }
             }
@@ -366,6 +382,20 @@ class WPCF_Relationship
             $this->cf->context = 'post_relationship';
             $this->cf->save( $value );
         }
+
+        /**
+         * save feature image
+         */
+        if ( isset( $save_fields['_wp_featured_image']) ) {
+            if ( $save_fields['_wp_featured_image'] ) {
+                set_post_thumbnail( $updated_id, $save_fields['_wp_featured_image']);
+            } else {
+                delete_post_thumbnail($updated_id);
+            }
+        }
+
+
+        remove_filter('toolset_common_validation_add_field_name_to_error', '__return_false', 1234, 1);
 
         do_action( 'wpcf_relationship_save_child', $child, $parent );
 
@@ -380,9 +410,9 @@ class WPCF_Relationship
     /**
      * Saves new child.
      *
-     * @param type $parent_id
-     * @param type $post_type
-     * @return type
+     * @param int $parent_id
+     * @param string $post_type
+     * @return int|WP_Error
      */
     function add_new_child($parent_id, $post_type)
     {
@@ -392,7 +422,7 @@ class WPCF_Relationship
             return new WP_Error( 'wpcf-relationship-no-parent', 'No parent' );
         }
         $new_post = array(
-            'post_title' => __('New'). ': '.$post_type,
+            'post_title' => __('New Child', 'wpcf'). ': '.$post_type,
             'post_type' => $post_type,
             'post_status' => 'draft',
         );

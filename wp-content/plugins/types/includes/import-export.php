@@ -2,10 +2,6 @@
 /*
  * Import/export data.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/includes/import-export.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
@@ -29,7 +25,7 @@ function wpcf_admin_import_export_form()
         $show_first_screen = false;
         if ( isset( $_POST['import-final'] ) ) {
             if ( $_POST['mode'] == 'file' && !empty( $_POST['file'] ) ) {
-                $file = get_transient( $_POST['file'] );
+                $file = get_transient( sanitize_text_field( $_POST['file'] ) );
                 if ( file_exists($file) ) {
                     $info = pathinfo($file);
                     $is_zip = $info['extension'] == 'zip' ? true : false;
@@ -70,7 +66,7 @@ function wpcf_admin_import_export_form()
                 }
             }
             if ( $_POST['mode'] == 'text' && !empty( $_POST['text'] ) ) {
-                $charset = !empty( $_POST['text-encoding'] ) ? $_POST['text-encoding'] : get_option( 'blog_charset' );
+                $charset = !empty( $_POST['text-encoding'] ) ? sanitize_text_field( $_POST['text-encoding'] ) : get_option( 'blog_charset' );
                 wpcf_admin_import_data( stripslashes( html_entity_decode( $_POST['text'],
                                         ENT_QUOTES, $charset ) ) );
             }
@@ -143,7 +139,7 @@ function wpcf_admin_import_export_form()
                                 $match ) ) {
                     $charset = trim( $match[1], '"' );
                 } else {
-                    $charset = !empty( $_POST['text-encoding'] ) ? $_POST['text-encoding'] : get_option( 'blog_charset' );
+                    $charset = !empty( $_POST['text-encoding'] ) ? sanitize_text_field( $_POST['text-encoding'] ) : get_option( 'blog_charset' );
                 }
                 $form['text'] = array(
                     '#type' => 'hidden',
@@ -194,25 +190,14 @@ function wpcf_admin_import_export_form()
     }
     if ( $show_first_screen ) {
         $form = $form_base;
-        $form['embedded-settings'] = array(
-            '#type' => 'radios',
-            '#name' => 'embedded-settings',
-            '#title' => __( 'When importing to theme:', 'wpcf' ),
-            '#options' => array(
-                __( 'ask user for approval', 'wpcf' ) => 'ask',
-                __( 'import automatically', 'wpcf' ) => 'auto',
-            ),
-            '#inline' => true,
-            '#before' => '<h2>' . __( 'Export Types data', 'wpcf' ) . '</h2>'
-            . __( 'Download all custom fields, custom post types and taxonomies created by Types plugin.',
-                'wpcf' ) . '<br /><br />',
-            );
         $form['submit'] = array(
             '#type' => 'submit',
             '#name' => 'export',
             '#value' => __( 'Export', 'wpcf' ),
             '#attributes' => array('class' => 'button-primary'),
             '#after' => '<br /><br />',
+            '#before' => '<h3>' . __( 'Export Types data', 'wpcf' ) . '</h3>'
+            . __( 'Download all custom fields, custom post types and taxonomies created by Types plugin.', 'wpcf' ) . '<br /><br />',
         );
         /**
          * check is temp folder available?
@@ -220,13 +205,6 @@ function wpcf_admin_import_export_form()
         $temp = wpcf_get_temporary_directory();
         if ( empty($temp) ) {
             unset($form['submit']);
-            $form['embedded-settings']['#disable'] = true;
-            $form['embedded-settings']['#after'] = sprintf(
-                '<p class="error-message"><b>%s</b> %s</p>',
-                __( 'Temporary directory is not found or there is not enough disk space.', 'wpcf' ),
-                __('Please check server settings or contact your server administrator.', 'wpcf' )
-            );
-
         }
         if ( extension_loaded( 'simplexml' ) ) {
             $attributes = !wpcf_admin_import_dir() ? array('disabled' => 'disabled') : array();
@@ -234,7 +212,7 @@ function wpcf_admin_import_export_form()
                 '#type' => 'file',
                 '#name' => 'file',
                 '#prefix' => __( 'Upload XML file', 'wpcf' ) . '<br />',
-                '#before' => '<h2>' . __( 'Import Types data file', 'wpcf' ) . '</h2>',
+                '#before' => '<h3>' . __( 'Import Types data file', 'wpcf' ) . '</h3>',
                 '#inline' => true,
                 '#attributes' => $attributes,
             );
@@ -257,15 +235,14 @@ function wpcf_admin_import_export_form()
                 '#title' => __( 'Paste code here', 'wpcf' ),
                 '#name' => 'text',
                 '#attributes' => array('rows' => 20),
-                '#before' => '<h2>' . __( 'Import Types data text input', 'wpcf' ) . '</h2>',
+                '#before' => '<h3>' . __( 'Import Types data text input', 'wpcf' ) . '</h3>',
             );
             $form['text-encoding'] = array(
                 '#type' => 'textfield',
                 '#title' => __( 'Encoding', 'wpcf' ),
                 '#name' => 'text-encoding',
                 '#value' => get_option( 'blog_charset' ),
-                '#description' => __( 'If encoding is set in text input, it will override this setting.',
-                        'wpcf' ),
+                '#description' => __( 'If encoding is set in text input, it will override this setting.', 'wpcf' ),
             );
             $form['submit-text'] = array(
                 '#type' => 'submit',
@@ -280,8 +257,7 @@ function wpcf_admin_import_export_form()
             );
         } else {
             echo '<div class="message error"><p>'
-            . __( 'PHP SimpleXML extension not loaded: Importing not available',
-                    'wpcf' )
+            . __( 'PHP SimpleXML extension not loaded: Importing not available', 'wpcf' )
             . '</p></div>';
         }
     }
@@ -303,7 +279,7 @@ function wpcf_admin_import_export_file_upload_error($file, $error_msg)
 /**
  * Import settings.
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @param SimpleXMLElement $data
  * @return string
  */
@@ -385,10 +361,13 @@ function wpcf_admin_import_export_settings($data)
                 '#inline' => true,
                 '#after' => '<br />',
             );
-            $post = $wpdb->get_var( $wpdb->prepare(
-                            "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                            $group['post_title'], $group['post_type'] ) );
+            $post = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                    $group['post_title'],
+                    $group['post_type']
+                )
+            );
             if ( !empty( $post ) ) {
                 $form['group-add-' . $group['ID']]['#after'] = wpcf_form_simple(
                         array('group-add-update-' . $group['ID'] => array(
@@ -491,10 +470,13 @@ function wpcf_admin_import_export_settings($data)
                 '#inline' => true,
                 '#after' => '<br /><br />',
             );
-            $post = $wpdb->get_var( $wpdb->prepare(
-                            "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                            $group['post_title'], $group['post_type'] ) );
+            $post = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                    $group['post_title'],
+                    $group['post_type']
+                )
+            );
             if ( !empty( $post ) ) {
                 $form['user-group-add-' . $group['ID']]['#after'] = wpcf_form_simple(
                         array('user-group-add-update-' . $group['ID'] => array(
@@ -584,10 +566,9 @@ function wpcf_admin_import_export_settings($data)
     if ( !empty( $data->types ) ) {
         $form['title-types'] = array(
             '#type' => 'markup',
-            '#markup' => '<h2>' . __( 'Custom post types to be added/updated',
-                    'wpcf' ) . '</h2>',
+            '#markup' => '<h2>' . __( 'Custom post types to be added/updated', 'wpcf' ) . '</h2>',
         );
-        $types_existing = get_option( 'wpcf-custom-types', array() );
+        $types_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         $types_check = array();
         $types_to_be_deleted = array();
         foreach ( $data->types->type as $type ) {
@@ -612,8 +593,7 @@ function wpcf_admin_import_export_settings($data)
         if ( !empty( $types_to_be_deleted ) ) {
             $form['title-types-deleted'] = array(
                 '#type' => 'markup',
-                '#markup' => '<h2>' . __( 'Custom post types to be deleted',
-                        'wpcf' ) . '</h2>',
+                '#markup' => '<h2>' . __( 'Custom post types to be deleted', 'wpcf' ) . '</h2>',
             );
             $form['types-deleted'] = array(
                 '#type' => 'checkboxes',
@@ -627,10 +607,9 @@ function wpcf_admin_import_export_settings($data)
     if ( !empty( $data->taxonomies ) ) {
         $form['title-tax'] = array(
             '#type' => 'markup',
-            '#markup' => '<h2>' . __( 'Custom taxonomies to be added/updated',
-                    'wpcf' ) . '</h2>',
+            '#markup' => '<h2>' . __( 'Custom taxonomies to be added/updated', 'wpcf' ) . '</h2>',
         );
-        $taxonomies_existing = get_option( 'wpcf-custom-taxonomies', array() );
+        $taxonomies_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         $taxonomies_check = array();
         $taxonomies_to_be_deleted = array();
         foreach ( $data->taxonomies->taxonomy as $taxonomy ) {
@@ -655,8 +634,7 @@ function wpcf_admin_import_export_settings($data)
         if ( !empty( $taxonomies_to_be_deleted ) ) {
             $form['title-taxonomies-deleted'] = array(
                 '#type' => 'markup',
-                '#markup' => '<h2>' . __( 'Custom taxonomies to be deleted',
-                        'wpcf' ) . '</h2>',
+                '#markup' => '<h2>' . __( 'Custom taxonomies to be deleted', 'wpcf' ) . '</h2>',
             );
             $form['taxonomies-deleted'] = array(
                 '#type' => 'checkboxes',

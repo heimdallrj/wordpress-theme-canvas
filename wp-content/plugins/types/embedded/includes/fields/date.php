@@ -321,8 +321,17 @@ function wpcf_fields_date_value_get_filter( $value, $field, $return = 'array',
         if (
             array_key_exists('datepicker', $value)
             && !array_key_exists('timestamp', $value)
-            && preg_match( '/^\d+$/', $value['datepicker'] )
-        ) {
+            //Fix date pre-1970 issue
+            //https://wp-types.com/forums/topic/pre-1971-dates-throw-error/#post-288989
+            //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/194818870/comments
+            && (
+                preg_match( '/^\d+$/', $value['datepicker'] )
+                || ( 
+                 -12219292800 <= $value['datepicker'] 
+                 && $value['datepicker'] <= 32535215940
+                )
+               )
+                    ) {
             $value['timestamp'] = $value['datepicker'];
             unset($value['datepicker']);
         }
@@ -388,15 +397,6 @@ function wpcf_fields_date_view( $params ) {
             $output .= wpcf_fields_date_get_calendar( $params, true, false );
             break;
 
-        case 'human-time-diff':
-            $date_out = human_time_diff($params['field_value']);
-            if ( $params['field_value'] < time() ) {
-                $output .= sprintf( __('%s ago', 'wpcf'), $date_out);;
-            } else {
-                $output .= sprintf( __('%s to go', 'wpcf'), $date_out);;
-            }
-            break;
-
         default:
             $field_name = '';
 
@@ -442,7 +442,7 @@ function wpcf_fields_date_editor_callback( $field, $settings ) {
     );
     $date_formats = apply_filters( 'date_formats',
         array(
-            __( 'F j, Y' ),
+            __( 'F j, Y', 'wpcf' ),
             'Y/m/d',
             'm/d/Y',
             'd/m/Y',
@@ -471,8 +471,8 @@ function wpcf_fields_date_editor_callback( $field, $settings ) {
         'supports' => array('styling'),
         'tabs' => array(
             'display' => array(
-                'menu_title' => __( 'Display', 'wpcf' ),
-                'title' => __( 'Display', 'wpcf' ),
+                'menu_title' => __( 'Display options', 'wpcf' ),
+                'title' => __( 'Display options for this field:', 'wpcf' ),
                 'content' => WPCF_Loader::template( 'editor-modal-date', $data ),
             ),
         )

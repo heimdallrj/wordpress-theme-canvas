@@ -36,8 +36,7 @@ function wpcf_fields_checkbox_insert_form( $form_data ) {
     $form['name'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Name of custom field', 'wpcf' ),
-        '#description' => __( 'Under this name field will be stored in DB (sanitized)',
-                'wpcf' ),
+        '#description' => __( 'Under this name field will be stored in DB (sanitized)', 'wpcf' ),
         '#name' => 'name',
         '#attributes' => array(
             'class' => 'wpcf-forms-set-legend',
@@ -98,8 +97,7 @@ function wpcf_fields_checkbox_insert_form( $form_data ) {
         '#name' => 'display',
         '#options' => array(
             'display_from_db' => array(
-                '#title' => __( 'Display the value of this field from the database',
-                        'wpcf' ),
+                '#title' => __( 'Display the value of this field from the database', 'wpcf' ),
                 '#name' => 'display',
                 '#value' => 'db',
                 '#inline' => true,
@@ -119,17 +117,22 @@ function wpcf_fields_checkbox_insert_form( $form_data ) {
         '#name' => 'display_value_not_selected',
         '#value' => '',
         '#inline' => true,
+        '#attributes' => array(
+            'placeholder' => __('Enter not selected value', 'wpcf'),
+        ),
     );
     $form['display-value-2'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Selected:', 'wpcf' ),
         '#name' => 'display_value_selected',
         '#value' => '',
+        '#attributes' => array(
+            'placeholder' => __('Enter selected value', 'wpcf'),
+        ),
     );
     $form['help'] = array(
         '#type' => 'markup',
-        '#markup' => '<p style="text-align:right"><a href="http://wp-types.com/documentation/functions/checkbox/" target="_blank">' . __( 'Checkbox help',
-                'wpcf' ) . '</a></p>',
+        '#markup' => '<p style="text-align:right"><a href="http://wp-types.com/documentation/functions/checkbox/" target="_blank">' . __( 'Checkbox help', 'wpcf' ) . '</a></p>',
     );
     return $form;
 }

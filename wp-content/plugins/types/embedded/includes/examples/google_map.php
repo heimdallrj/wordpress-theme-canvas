@@ -72,9 +72,13 @@ function wpcf_fields_google_map() {
                 'deps' => array('jquery'), // (optional) Same as WP's enqueue_script() param
                 'in_footer' => true, // (optional) Same as WP's enqueue_script() param
             ),
+            /**
+             * example how to add javascript file
+             *
             'wpcf-jquery-fields-my-field' => array(
                 'src' => get_stylesheet_directory_uri() . '/js/my-field.js', // This will load JS file
             ),
+             */
         ),
         // Additional CSS on post edit page
         'meta_box_css' => array(
@@ -85,14 +89,22 @@ function wpcf_fields_google_map() {
         ),
         // Additional JS on group edit page
         'group_form_js' => array(// Add JS when field is active on post edit page
+            /**
+             * example how to add javascript file wit callback fundtion
+             *
             'wpcf-jquery-fields-my-field' => array(
                 'inline' => 'wpcf_fields_google_map_group_form_js_inline', // This calls function that renders JS
                 'deps' => array('jquery'), // (optional) Same as WP's enqueue_script() param
                 'in_footer' => true, // (optional) Same as WP's enqueue_script() param
             ),
+             */
+            /**
+             * example how to add javascript file
+             *
             'wpcf-jquery-fields-my-field' => array(
                 'src' => get_stylesheet_directory_uri() . '/js/my-field.js', // This will load JS file
             ),
+             */
         ),
         // Additional CSS on post edit page
         'group_form_css' => array(
@@ -135,8 +147,7 @@ function wpcf_fields_google_map_meta_box_form( $data ) {
         '#name' => 'wpcf[' . $data['slug'] . ']', // Set this to override default output
         '#type' => 'textfield',
         '#title' => __( 'Add Google Map coordinates', 'wpcf' ),
-        '#description' => __( 'Your input should look something like "41.934146,12.455821"',
-                'wpcf' )
+        '#description' => __( 'Your input should look something like "41.934146,12.455821"', 'wpcf' )
     );
     return $form;
 }
@@ -150,11 +161,9 @@ function wpcf_fields_google_map_editor_callback( $field, $settings ) {
     ob_start();
 
     ?>
-    <label><input type="text" name="width" value="<?php echo isset( $settings['width'] ) ? $settings['width'] : '425'; ?>" />&nbsp;<?php _e( 'Width',
-            'wpcf' ); ?></label>
+    <label><input type="text" name="width" value="<?php echo isset( $settings['width'] ) ? $settings['width'] : '425'; ?>" />&nbsp;<?php _e( 'Width', 'wpcf' ); ?></label>
     <br />
-    <label><input type="text" name="height" value="<?php echo isset( $settings['height'] ) ? $settings['height'] : '350'; ?>" />&nbsp;<?php _e( 'Height',
-            'wpcf' ); ?></label>
+    <label><input type="text" name="height" value="<?php echo isset( $settings['height'] ) ? $settings['height'] : '350'; ?>" />&nbsp;<?php _e( 'Height', 'wpcf' ); ?></label>
     <?php
     $form = ob_get_contents();
     ob_get_clean();

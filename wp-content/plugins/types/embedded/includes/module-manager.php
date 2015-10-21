@@ -4,10 +4,6 @@
  *
  * Since Types 1.2
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/module-manager.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -23,12 +19,6 @@ define( '_TAX_MODULE_MANAGER_KEY_', 'taxonomies' );
  */
 add_action( 'wpcf_admin_footer_wpcf-edit', 'wpcf_module_inline_table_fields' );
 
-add_action( 'wpcf_admin_footer_wpcf-edit-type',
-        'wpcf_module_inline_table_post_types' );
-
-add_action( 'wpcf_admin_footer_wpcf-edit-tax',
-        'wpcf_module_inline_table_post_taxonomies' );
-
 /**
  * Fields table.
  */
@@ -41,11 +31,11 @@ function wpcf_module_inline_table_fields() {
                 // add module manager meta box to post type form
                 $element = array('id' => '12' . _GROUPS_MODULE_MANAGER_KEY_ . '21' . $_group['id'],
                     'title' => $_group['name'], 'section' => _GROUPS_MODULE_MANAGER_KEY_);
-                echo '<table class="widefat modman-inline-table"><thead><tr><th>'
+                echo '<div class="wpcf-form-fields-main modman"><table class="widefat"><thead><tr><th>'
                 . __( 'Module Manager', 'wpcf' )
                 . '</th></tr></thead><tbody><tr><td>';
                 do_action( 'wpmodules_inline_element_gui', $element );
-                echo '</td></tr></tbody></table>';
+                echo '</td></tr></tbody></table></div>';
                 break;
             }
         }
@@ -55,18 +45,92 @@ function wpcf_module_inline_table_fields() {
 /**
  * Post types table.
  */
+add_filter('wpcf_meta_box_order_defaults', 'wpcf_module_post_add_meta_box', 10, 2);
+
+function wpcf_module_post_add_meta_box($meta_box_order_defaults, $type)
+{
+    if ( !defined( 'MODMAN_PLUGIN_NAME' )) {
+        return $meta_box_order_defaults;
+    }
+    switch($type)
+    {
+    case 'post_type':
+        if ( isset( $_GET['wpcf-post-type'] ) ) {
+            if (!isset($meta_box_order_defaults['side'])) {
+                $meta_box_order_defaults['side'] = array();
+            }
+            $meta_box_order_defaults['side'][] = 'module_manager_post';
+        }
+        break;
+    case 'taxonomy':
+        if (  isset( $_GET['wpcf-tax'] ) ) {
+            if (!isset($meta_box_order_defaults['side'])) {
+                $meta_box_order_defaults['side'] = array();
+            }
+            $meta_box_order_defaults['side'][] = 'module_manager_taxonomy';
+        }
+        break;
+    }
+    return $meta_box_order_defaults;
+}
+
+function wpcf_admin_metabox_module_manager_post($post_type)
+{
+    return wpcf_admin_metabox_module_manager($post_type, 'post');
+}
+
+function wpcf_admin_metabox_module_manager_taxonomy($taxonomy_type)
+{
+    return wpcf_admin_metabox_module_manager($taxonomy_type, 'taxonomy');
+}
+
+function wpcf_admin_metabox_module_manager($post_type, $type)
+{
+    $form = array();
+    /**
+     * open form
+     */
+    $form['table-mm-open'] = wpcf_admin_metabox_begin(__( 'Module Manager', 'wpcf' ), 'module_manager_post', 'wpcf-types-form-mm-table', false);
+    /**
+     * box content
+     */
+    ob_start();
+    switch($type) {
+    case 'post':
+        wpcf_module_inline_table_post_types();
+        break;
+    case 'taxonomy':
+        wpcf_module_inline_table_post_taxonomies();
+        break;
+    default:
+        _e('Wrong type!', 'wpcf');
+        break;
+    }
+    $markup = ob_get_contents();
+    ob_end_clean();
+    $form['table-mm'] = array(
+        '#type' => 'markup',
+        '#markup' => $markup,
+    );
+    /**
+     * close form
+     */
+    $form['table-mm-close'] = wpcf_admin_metabox_end();
+    /**
+     * additional settings
+     */
+    return $form;
+}
+
 function wpcf_module_inline_table_post_types() {
     // dont add module manager meta box on new post type form
     if ( defined( 'MODMAN_PLUGIN_NAME' ) && isset( $_GET['wpcf-post-type'] ) ) {
-        $_custom_types = get_option( 'wpcf-custom-types', array() );
+        $_custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         if ( isset( $_custom_types[$_GET['wpcf-post-type']] ) ) {
             $_post_type = $_custom_types[$_GET['wpcf-post-type']];
             // add module manager meta box to post type form
             $element = array('id' => '12' . _TYPES_MODULE_MANAGER_KEY_ . '21' . $_post_type['slug'], 'title' => $_post_type['labels']['singular_name'], 'section' => _TYPES_MODULE_MANAGER_KEY_);
-            echo '<br /><br /><table class="wpcf-types-form-table widefat"><thead><tr><th colspan="2">' . __( 'Module Manager',
-                    'wpcf' ) . '</th></tr></thead><tbody><tr><td>';
             do_action( 'wpmodules_inline_element_gui', $element );
-            echo '</td></tr></tbody></table>';
         }
     }
 }
@@ -77,16 +141,13 @@ function wpcf_module_inline_table_post_types() {
 function wpcf_module_inline_table_post_taxonomies() {
     // dont add module manager meta box on new post type form
     if ( defined( 'MODMAN_PLUGIN_NAME' ) && isset( $_GET['wpcf-tax'] ) ) {
-        $_custom_taxes = get_option( 'wpcf-custom-taxonomies', array() );
+        $_custom_taxes = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         if ( isset( $_custom_taxes[$_GET['wpcf-tax']] ) ) {
             $_tax = $_custom_taxes[$_GET['wpcf-tax']];
             // add module manager meta box to post type form
             $element = array('id' => '12' . _TAX_MODULE_MANAGER_KEY_ . '21' . $_tax['slug'],
                 'title' => $_tax['labels']['singular_name'], 'section' => _TAX_MODULE_MANAGER_KEY_);
-            echo '<br /><br /><table class="wpcf-types-form-table widefat"><thead><tr><th colspan="2">' . __( 'Module Manager',
-                    'wpcf' ) . '</th></tr></thead><tbody><tr><td>';
             do_action( 'wpmodules_inline_element_gui', $element );
-            echo '</td></tr></tbody></table>';
         }
     }
 }
@@ -180,10 +241,15 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
     }
 
     function wpcf_register_modules_items_types( $items ) {
-        $custom_types = get_option( 'wpcf-custom-types', array() );
+        $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         foreach ( $custom_types as $type ) {
-            $_details = sprintf( __( '%s custom post type: %s', 'wpcf' ),
-                    ucfirst( $type['public'] ), $type['labels']['name'] );
+            if ( empty($type) ) {
+                continue;
+            }
+            if (isset($type['_builtin']) && $type['_builtin']) {
+                continue;
+            }
+            $_details = sprintf( __( '%s custom post type: %s', 'wpcf' ), ucfirst( $type['public'] ), $type['labels']['name'] );
             $details = !empty( $type['description'] ) ? $type['description'] : $_details;
             $items[] = array(
                 'id' => '12' . _TYPES_MODULE_MANAGER_KEY_ . '21' . $type['slug'],
@@ -213,8 +279,7 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         $result2 = wpcf_admin_import_data_from_xmlstring( $xmlstring, 'types',
                 'modman' );
         if ( false === $result2 || is_wp_error( $result2 ) )
-            return (false === $result2) ? __( 'Error during Post Types import',
-                            'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
+            return (false === $result2) ? __( 'Error during Post Types import', 'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
 
         return $result2;
     }
@@ -251,14 +316,13 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         $result2 = wpcf_admin_import_data_from_xmlstring( $xmlstring, 'groups',
                 'modman' );
         if ( false === $result2 || is_wp_error( $result2 ) )
-            return (false === $result2) ? __( 'Error during Field Groups import',
-                            'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
+            return (false === $result2) ? __( 'Error during Field Groups import', 'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
 
         return $result2;
     }
 
     function wpcf_register_modules_items_taxonomies( $items ) {
-        $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+        $custom_taxonomies = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
 
         foreach ( $custom_taxonomies as $tax ) {
             $_details = sprintf( __( 'Fields group: %s', 'wpcf' ),
@@ -292,8 +356,7 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         $result2 = wpcf_admin_import_data_from_xmlstring( $xmlstring,
                 'taxonomies', 'modman' );
         if ( false === $result2 || is_wp_error( $result2 ) )
-            return (false === $result2) ? __( 'Error during Taxonomies import',
-                            'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
+            return (false === $result2) ? __( 'Error during Taxonomies import', 'wpcf' ) : $result2->get_error_message( $result2->get_error_code() );
 
         return $result2;
     }
@@ -324,7 +387,13 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
     if ( 'user_groups' == $_type || 'all' == $_type ) {
         // Get groups
         if ( empty( $items ) ) {
-            $groups = get_posts( 'post_type=wp-types-user-group&post_status=null&numberposts=-1' );
+            $groups = get_posts(
+                array(
+                    'post_type' => TYPES_USER_META_FIELD_GROUP_CPT_NAME,
+                    'post_status' => null,
+                    'numberposts' => '-1',
+                )
+            );
         } else {
             /*
              *
@@ -340,7 +409,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
             }
             $args = array(
                 'post__in' => $items,
-                'post_type' => 'wp-types-user-group',
+                'post_type' => TYPES_USER_META_FIELD_GROUP_CPT_NAME,
                 'post_status' => 'all',
                 'posts_per_page' => -1
             );
@@ -394,7 +463,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
                 $fields = array_merge( $fields,
                     wpcf_admin_fields_get_fields_by_group( $post->ID,
                     'slug', false, false, false,
-                    'wp-types-user-group', 'wpcf-usermeta',
+                    TYPES_USER_META_FIELD_GROUP_CPT_NAME, 'wpcf-usermeta',
                     $use_cache ) );
             }
         } else {
@@ -452,7 +521,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
             }
             $args = array(
                 'post__in' => $items,
-                'post_type' => 'wp-types-group',
+                'post_type' => TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
                 'post_status' => 'all',
                 'posts_per_page' => -1
             );
@@ -510,7 +579,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
             foreach ( $groups as $key => $post ) {
                 $fields = array_merge( $fields,
                     wpcf_admin_fields_get_fields_by_group( $post->ID,
-                    'slug', false, false, false, 'wp-types-group',
+                    'slug', false, false, false, TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
                     'wpcf-fields', $use_cache ) );
             }
         } else {
@@ -549,17 +618,15 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
 
     // Get custom types
     if ( 'types' == $_type || 'all' == $_type ) {
+        $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         // Get custom types
         // TODO Document $items
         if ( !empty( $items ) ) {
             /*
-             *
              * This fails
              * $items are in form of:
              * 0 => array('id' => 'pt', ...)
              */
-            //            $custom_types = array_intersect_key( get_option( 'wpcf-custom-types',
-            //                            array() ), array_flip( $items ) );
             $_items = array();
             foreach ( $items as $k => $item ) {
                 if ( is_array( $item ) && isset( $item['id'] ) ) {
@@ -568,10 +635,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
                     $_items[$item] = true;
                 }
             }
-            $custom_types = array_intersect_key( get_option( 'wpcf-custom-types',
-                array() ), $_items );
-        } else {
-            $custom_types = get_option( 'wpcf-custom-types', array() );
+            $custom_types = array_intersect_key( $custom_types, $_items );
         }
         // Get custom types
         if ( !empty( $custom_types ) ) {
@@ -612,6 +676,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
         if ( !empty( $relationships ) ) {
             $data['post_relationships']['data'] = json_encode( $relationships );
         }
+
     }
 
     // Get custom tax
@@ -623,7 +688,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
              * $items are in form of:
              * 0 => array('id' => 'pt', ...)
              */
-            //            $custom_taxonomies = array_intersect_key( get_option( 'wpcf-custom-taxonomies',
+            //            $custom_taxonomies = array_intersect_key( get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES,
             //                            array() ), array_flip( $items ) );
             $_items = array();
             foreach ( $items as $k => $item ) {
@@ -633,11 +698,11 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
                     $_items[$item] = true;
                 }
             }
-            $custom_taxonomies = array_intersect_key( get_option( 'wpcf-custom-taxonomies',
+            $custom_taxonomies = array_intersect_key( get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES,
                 array() ), $_items );
         } else {
             // Get custom tax
-            $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+            $custom_taxonomies = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         }
         if ( !empty( $custom_taxonomies ) ) {
             foreach ( $custom_taxonomies as $key => $tax ) {
@@ -713,16 +778,13 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
     $filename = $sitename . 'types.' . date( 'Y-m-d' ) . '.xml';
     $code = "<?php\r\n";
     $code .= '$timestamp = ' . time() . ';' . "\r\n";
-    $code .= '$auto_import = ';
-    $code .= (isset( $_POST['embedded-settings'] ) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
-    $code .= ';' . "\r\n";
     $code .= "\r\n?".">";
 
     if ( class_exists( 'ZipArchive' ) ) {
         $zipname = $sitename . 'types.' . date( 'Y-m-d' ) . '.zip';
         $temp_dir = wpcf_get_temporary_directory();
         if ( empty( $temp_dir ) ) {
-            die(__('There is a problem with temporary directory.'));
+            die(__('There is a problem with temporary directory.', 'wpcf'));
         }
         $file = tempnam( $temp_dir, "zip" );
         $zip = new ZipArchive();
@@ -775,7 +837,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
  *
  * Import selected items given by xmlstring.
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @global type $iclTranslationManagement
  * @param type $data
  * @param type $_type
@@ -804,8 +866,7 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
     if ( !$data ) {
         echo '<div class="message error"><p>' . __( 'Error parsing XML', 'wpcf' ) . '</p></div>';
         foreach ( libxml_get_errors() as $error ) {
-            return new WP_Error( 'error_parsing_xml', __( 'Error parsing XML',
-                                    'wpcf' ) . ' ' . $error->message );
+            return new WP_Error( 'error_parsing_xml', __( 'Error parsing XML', 'wpcf' ) . ' ' . $error->message );
         }
         libxml_clear_errors();
         return false;
@@ -845,15 +906,18 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
         foreach ( $groups as $group ) {
             $post = array(
                 'post_status' => $group['post_status'],
-                'post_type' => 'wp-types-group',
+                'post_type' => TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
                 'post_title' => $group['post_title'],
                 'post_content' => !empty( $group['post_content'] ) ? $group['post_content'] : '',
             );
             if ( (isset( $group['add'] ) && $group['add'] ) ) {
-                $post_to_update = $wpdb->get_var( $wpdb->prepare(
-                                "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                                $group['post_title'], 'wp-types-group' ) );
+                $post_to_update = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                        $group['post_title'],
+                        TYPES_CUSTOM_FIELD_GROUP_CPT_NAME
+                    )
+                );
                 // Update (may be forced by bulk action)
                 if ( $group['update'] || (!empty( $post_to_update )) ) {
                     if ( !empty( $post_to_update ) ) {
@@ -868,11 +932,9 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
 
                         $group_wp_id = wp_update_post( $post );
                         if ( !$group_wp_id ) {
-                            $errors[] = new WP_Error( 'group_update_failed', sprintf( __( 'Group "%s" update failed',
-                                                            'wpcf' ),
+                            $errors[] = new WP_Error( 'group_update_failed', sprintf( __( 'Group "%s" update failed', 'wpcf' ),
                                                     $group['post_title'] ) );
-                            $result['errors'][] = sprintf( __( 'Group %s update failed',
-                                            'wpcf' ), $group['post_title'] );
+                            $result['errors'][] = sprintf( __( 'Group %s update failed', 'wpcf' ), $group['post_title'] );
                             $result['failed'] += 1;
                         } else {
                             if ( !$_checksum ) {
@@ -882,18 +944,15 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
                             }
                         }
                     } else {
-                        $errors[] = new WP_Error( 'group_update_failed', sprintf( __( 'Group "%s" update failed',
-                                                        'wpcf' ),
+                        $errors[] = new WP_Error( 'group_update_failed', sprintf( __( 'Group "%s" update failed', 'wpcf' ),
                                                 $group['post_title'] ) );
                     }
                 } else { // Insert
                     $group_wp_id = wp_insert_post( $post, true );
                     if ( is_wp_error( $group_wp_id ) ) {
-                        $errors[] = new WP_Error( 'group_insert_failed', sprintf( __( 'Group "%s" insert failed',
-                                                        'wpcf' ),
+                        $errors[] = new WP_Error( 'group_insert_failed', sprintf( __( 'Group "%s" insert failed', 'wpcf' ),
                                                 $group['post_title'] ) );
-                        $result['errors'][] = sprintf( __( 'Group %s insert failed',
-                                        'wpcf' ), $group['post_title'] );
+                        $result['errors'][] = sprintf( __( 'Group %s insert failed', 'wpcf' ), $group['post_title'] );
                         $result['failed'] += 1;
                     } else {
                         $result['new'] += 1;
@@ -984,16 +1043,13 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
     if ( !empty( $data->types ) && 'types' == $_type ) {
         $imported = true;
 
-        $types_existing = get_option( 'wpcf-custom-types', array() );
+        $types_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         $types = array();
         $types_check = array();
         // Set insert data from XML
         foreach ( $data->types->type as $type ) {
             $type = (array) $type;
             $type = wpcf_admin_import_export_simplexml2array( $type );
-            // TODO 1.2.1 Remove
-//            $_id = wpcf_modman_get_submitted_id( _TYPES_MODULE_MANAGER_KEY_,
-//                    $type['id'] );
             $_id = strval( $type['__types_id'] );
 
             // If Types check if exists in $_POST
@@ -1033,7 +1089,7 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
             $types_existing[$type_id] = $type;
             $types_check[] = $type_id;
         }
-        update_option( 'wpcf-custom-types', $types_existing );
+        update_option( WPCF_OPTION_NAME_CUSTOM_TYPES, $types_existing );
 
         // Add relationships
         /** EMERSON: Restore Types relationships when importing modules */
@@ -1058,7 +1114,7 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
     if ( !empty( $data->taxonomies ) && 'taxonomies' == $_type ) {
         $imported = true;
 
-        $taxonomies_existing = get_option( 'wpcf-custom-taxonomies', array() );
+        $taxonomies_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         $taxonomies = array();
         $taxonomies_check = array();
         // Set insert data from XML
@@ -1103,7 +1159,7 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
             $taxonomies_existing[$taxonomy_id] = $taxonomy;
             $taxonomies_check[] = $taxonomy_id;
         }
-        update_option( 'wpcf-custom-taxonomies', $taxonomies_existing );
+        update_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, $taxonomies_existing );
     }
 
     if ( $imported ) {

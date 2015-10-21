@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/fields/image.php $
- * $LastChangedDate: 2014-11-21 08:53:16 +0000 (Fri, 21 Nov 2014) $
- * $LastChangedRevision: 1029976 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -15,8 +11,29 @@ add_filter( 'wpcf_fields_type_image_value_save', 'wpcf_fields_image_value_filter
 add_filter( 'types_view', 'wpcf_fields_image_view_filter', 10, 6 );
 
 /**
+ * return array of valid extensions
+ *
+ * @since 1.8
+ *
+ * @return array
+ */
+function wpcf_fields_image_valid_extension()
+{
+    return array(
+        'bmp',
+        'gif',
+        'ico',
+        'jpeg',
+        'jpg',
+        'png',
+        'svg',
+        'webp',
+    );
+}
+
+/**
  * Register data (called automatically).
- * @return type 
+ * @return type
  */
 function wpcf_fields_image() {
     return array(
@@ -24,46 +41,15 @@ function wpcf_fields_image() {
         'title' => __( 'Image', 'wpcf' ),
         'description' => __( 'Image', 'wpcf' ),
         'validate' => array('required'),
-        'meta_box_js' => array(
-            'wpcf-jquery-fields-file' => array(
-                'inline' => 'wpcf_fields_file_meta_box_js_inline',
-            ),
-            'wpcf-jquery-fields-image' => array(
-                'inline' => 'wpcf_fields_image_meta_box_js_inline',
-            ),
-        ),
         'inherited_field_type' => 'file',
     );
 }
 
 /**
- * Renders inline JS.
- */
-function wpcf_fields_image_meta_box_js_inline() {
-    global $post;
-    $for_post = (isset( $post ) ? 'post_id=' . $post->ID . '&' : '');
-
-    ?>
-    <script type="text/javascript">
-        //<![CDATA[
-        jQuery(document).ready(function(){
-            wpcf_formfield = false;
-            jQuery('.wpcf-fields-image-upload-link').live('click', function() {
-                wpcf_formfield = '#'+jQuery(this).attr('id')+'-holder';
-                tb_show('<?php
-    echo esc_js( __( 'Upload image', 'wpcf' ) );
-
-    ?>', 'media-upload.php?<?php echo $for_post ?>type=image&context=wpcf-fields-media-insert&TB_iframe=1&width=640&height=336');
-                return false;
-            }); 
-        });
-        //]]>
-    </script>
-    <?php
-}
-
-/**
  * Editor callback form.
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
 
@@ -84,9 +70,12 @@ function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
         if ( !empty( $image ) ) {
             // Get attachment by guid
             global $wpdb;
-            $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $image ) );
+            $attachment_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                    $image
+                )
+            );
         }
     }
     $data['image'] = $image;
@@ -158,7 +147,7 @@ function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
                 get_option( 'medium_size_w' ) . 'x' . get_option( 'medium_size_h' ) ),
         'large' => sprintf( __( 'Large - %s', 'wpcf' ),
                 get_option( 'large_size_w' ) . 'x' . get_option( 'large_size_h' ) ),
-        'full' => __( 'Full Size', 'wpcf' ),
+        'full' => __( 'Original image', 'wpcf' ),
     );
     $wp_image_sizes = (array) get_intermediate_image_sizes();
     foreach ( $wp_image_sizes as $wp_size ) {
@@ -177,8 +166,8 @@ function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
         'supports' => array('styling', 'style'),
         'tabs' => array(
             'display' => array(
-                'menu_title' => __( 'Display', 'wpcf' ),
-                'title' => __( 'Display', 'wpcf' ),
+                'menu_title' => __( 'Display options', 'wpcf' ),
+                'title' => __( 'Display options for this field:', 'wpcf' ),
                 'content' => WPCF_Loader::template( 'editor-modal-image', $data ),
             )
         ),
@@ -264,8 +253,8 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
 
 /**
  * View function.
- * 
- * @param type $params 
+ *
+ * @param type $params
  */
 function wpcf_fields_image_view( $params ) {
 
@@ -311,7 +300,7 @@ function wpcf_fields_image_view( $params ) {
     if ( !empty( $params['style'] ) ) {
         $style[] = $params['style'];
     }
-    
+
     // Compatibility with old parameters
     $old_param = isset( $params['proportional'] ) && $params['proportional'] == 'true' ? 'proportional' : 'crop';
     $resize = isset( $params['resize'] ) ? $params['resize'] : $old_param;
@@ -321,8 +310,7 @@ function wpcf_fields_image_view( $params ) {
         //print_r('is_attachment');
         if ( isset( $params['url'] ) && $params['url'] == 'true' ) {
             //print_r('is_url');
-            $image_url = wp_get_attachment_image_src( $image_data['is_attachment'],
-                    $params['size'] );
+            $image_url = wp_get_attachment_image_src( $image_data['is_attachment'], $params['size'] );
             if ( !empty( $image_url[0] ) ) {
                 $output = $image_url[0];
             } else {
@@ -421,15 +409,14 @@ function wpcf_fields_image_view( $params ) {
             return $resized_image;
         }
 
-        $output = '<img alt="';
-        $output .= $alt !== false ? $alt : $resized_image;
-        $output .= '" title="';
-        $output .= $title !== false ? $title : $resized_image;
-        $output .= '"';
-        $output .=!empty( $params['onload'] ) ? ' onload="' . $params['onload'] . '"' : '';
-        $output .=!empty( $class ) ? ' class="' . implode( ' ', $class ) . '"' : '';
-        $output .=!empty( $style ) ? ' style="' . implode( ' ', $style ) . '"' : '';
-        $output .= ' src="' . $resized_image . '" />';
+        $output = sprintf( '<img alt="%s" ', $output .= $alt !== false ? esc_attr($alt) : '');
+        if ( $title !== false ) {
+            $output .= sprintf(' title="%s"', esc_attr($title));
+        }
+        $output .=!empty( $params['onload'] ) ? ' onload="' . esc_attr($params['onload']) . '"' : '';
+        $output .=!empty( $class ) ? ' class="' . esc_attr(implode( ' ', $class )) . '"' : '';
+        $output .=!empty( $style ) ? ' style="' . esc_attr(implode( ' ', $style )) . '"' : '';
+        $output .= sprintf(' src="%s" />', esc_attr($resized_image));
     }
 
     return $output;
@@ -502,8 +489,7 @@ function wpcf_fields_image_resize_image( $url_path, $width = 300, $height = 200,
         $suffix .= '_wpcf_' . $dst_w . 'x' . $dst_h;
     }
 
-    $image_data['extension'] = in_array( strtolower( $image_data['extension'] ),
-                    array('gif', 'png', 'jpeg') ) ? $image_data['extension'] : 'jpg';
+    $image_data['extension'] = in_array( strtolower( $image_data['extension'] ), wpcf_fields_image_valid_extension() ) ? $image_data['extension'] : 'jpg';
 
     $image_relpath = $image_data['relpath'] . '/' . $image_data['image_name'] . '-'
             . $suffix . '.' . $image_data['extension'];
@@ -550,10 +536,9 @@ function wpcf_fields_image_resize_image( $url_path, $width = 300, $height = 200,
 
 /**
  * Gets all necessary data for processed image.
- * 
- * @global type $wpdb
+ *
  * @param type $image
- * @return type 
+ * @return type
  */
 function wpcf_fields_image_get_data( $image ) {
 
@@ -565,7 +550,7 @@ function wpcf_fields_image_get_data( $image ) {
     if ( isset( $cache[$cache_key] ) ) {
         return $cache[$cache_key];
     }
-    
+
     WPCF_Loader::loadView( 'image' );
     $utils = Types_Image_Utils::getInstance();
 
@@ -596,10 +581,8 @@ function wpcf_fields_image_get_data( $image ) {
     }
     // Extension check
     $data['extension'] = pathinfo( $image, PATHINFO_EXTENSION );
-    if ( !in_array( strtolower( $data['extension'] ),
-                    array('jpg', 'jpeg', 'gif', 'png') ) ) {
-        return array('error' => sprintf( __( 'Image %s not valid', 'wpcf' ),
-                    $image ));
+    if ( !in_array( strtolower( $data['extension'] ), wpcf_fields_image_valid_extension() ) ) {
+        return array('error' => sprintf( __( 'Image %s not valid', 'wpcf' ), $image ));
     }
 
     // Check if it's on same domain
@@ -658,9 +641,9 @@ function wpcf_fields_image_get_data( $image ) {
 
 /**
  * Strips GET vars from value.
- * 
+ *
  * @param type $value
- * @return type 
+ * @return type
  */
 function wpcf_fields_image_value_filter( $value ) {
     if ( is_string( $value ) && !apply_filters('wpcf_allow_questionmark_in_image_url', false) ) {
@@ -671,8 +654,8 @@ function wpcf_fields_image_value_filter( $value ) {
 
 /**
  * Gets cache directory.
- * 
- * @return \WP_Error 
+ *
+ * @return \WP_Error
  */
 function wpcf_fields_image_get_cache_directory( $suppress_filters = false ) {
     WPCF_Loader::loadView( 'image' );
@@ -684,10 +667,13 @@ function wpcf_fields_image_get_cache_directory( $suppress_filters = false ) {
     if ( !$suppress_filters ) {
         $cache_dir = apply_filters( 'types_image_cache_dir', $cache_dir );
         if ( !wp_mkdir_p( $cache_dir ) ) {
-            return new WP_Error( 'wpcf_image_cache_dir',
-                    sprintf( __( 'Image cache directory %s could not be created',
-                                    'wpcf' ),
-                            '<strong>' . $cache_dir . '</strong>' ) );
+            return new WP_Error(
+                'wpcf_image_cache_dir',
+                sprintf(
+                    __( 'Image cache directory %s could not be created', 'wpcf' ),
+                    '<strong>' . $cache_dir . '</strong>'
+                )
+            );
         }
     }
     return $cache_dir;
@@ -699,9 +685,9 @@ function wpcf_image_http_request_timeout( $timeout ) {
 
 /**
  * Fetches remote images.
- * 
+ *
  * @param type $url
- * @return \WP_Error 
+ * @return \WP_Error
  */
 function wpcf_fields_image_get_remote( $url ) {
 
@@ -717,9 +703,8 @@ function wpcf_fields_image_get_remote( $url ) {
 
     // Validate image
     $extension = pathinfo( $url, PATHINFO_EXTENSION );
-    if ( !in_array( strtolower( $extension ), array('jpg', 'jpeg', 'gif', 'png') ) ) {
-        return new WP_Error( 'wpcf_image_cache_not_valid', sprintf( __( 'Image %s not valid',
-                                        'wpcf' ), $url ) );
+    if ( !in_array( strtolower( $extension ), wpcf_fields_image_valid_extension() ) ) {
+        return new WP_Error( 'wpcf_image_cache_not_valid', sprintf( __( 'Image %s not valid', 'wpcf' ), $url ) );
     }
 
     $image = $cache_dir . md5( $url ) . '.' . $extension;
@@ -745,14 +730,13 @@ function wpcf_fields_image_get_remote( $url ) {
         // fetch the remote url and write it to the placeholder file
         add_filter( 'http_request_timeout', 'wpcf_image_http_request_timeout',
                 10, 1 );
-        $resp = wp_remote_get( $url );
+        $resp = wp_safe_remote_get( $url );
 
         // Check if response type is expected
         if ( is_object( $resp ) ) {
             return new WP_Error(
                             'wpcf_image_cache_file_error',
-                            sprintf( __( 'Remote server returned error response %1$d %2$s',
-                                            'wpcf' ),
+                            sprintf( __( 'Remote server returned error response %1$d %2$s', 'wpcf' ),
                                     esc_html( $resp->errors["http_request_failed"][0] ),
                                     get_status_header_desc( $resp->errors["http_request_failed"][0] )
                             )
@@ -763,21 +747,22 @@ function wpcf_fields_image_get_remote( $url ) {
                 'wpcf_image_http_request_timeout', 10, 1 );
         // make sure the fetch was successful
         if ( $resp['response']['code'] != '200' ) {
-            return new WP_Error( 'wpcf_image_cache_file_error', sprintf( __( 'Remote server returned error response %1$d %2$s',
-                                            'wpcf' ),
-                                    esc_html( $resp['response'] ),
-                                    get_status_header_desc( $resp['response'] ) ) );
+            return new WP_Error( 'wpcf_image_cache_file_error',
+                sprintf(
+                    __( 'Remote server returned error response %1$d %2$s', 'wpcf' ),
+                    esc_html( $resp['response'] ),
+                    get_status_header_desc( $resp['response'] ) 
+                )
+            );
         }
         if ( !isset( $resp['headers']['content-length'] )
                 || strlen( $resp['body'] ) != $resp['headers']['content-length'] ) {
-            return new WP_Error( 'wpcf_image_cache_file_error', __( 'Remote file is incorrect size',
-                                    'wpcf' ) );
+            return new WP_Error( 'wpcf_image_cache_file_error', __( 'Remote file is incorrect size', 'wpcf' ) );
         }
 
         $out_fp = fopen( $image, 'w' );
         if ( !$out_fp ) {
-            return new WP_Error( 'wpcf_image_cache_file_error', __( 'Could not create cache file',
-                                    'wpcf' ) );
+            return new WP_Error( 'wpcf_image_cache_file_error', __( 'Could not create cache file', 'wpcf' ) );
         }
 
         fwrite( $out_fp, $resp['body'] );
@@ -787,8 +772,7 @@ function wpcf_fields_image_get_remote( $url ) {
         $filesize = filesize( $image );
         if ( !empty( $max_size ) && $filesize > $max_size ) {
             @unlink( $image );
-            return new WP_Error( 'wpcf_image_cache_file_error', sprintf( __( 'Remote file is too large, limit is %s',
-                                            'wpcf' ), size_format( $max_size ) ) );
+            return new WP_Error( 'wpcf_image_cache_file_error', sprintf( __( 'Remote file is too large, limit is %s', 'wpcf' ), size_format( $max_size ) ) );
         }
     }
 
@@ -800,8 +784,8 @@ function wpcf_fields_image_get_remote( $url ) {
 
 /**
  * Clears remote image cache.
- * 
- * @param type $action 
+ *
+ * @param type $action
  */
 function wpcf_fields_image_clear_cache( $cache_dir = null, $action = 'outdated' ) {
     if ( is_null( $cache_dir ) ) {
@@ -830,7 +814,7 @@ function wpcf_fields_image_clear_cache( $cache_dir = null, $action = 'outdated' 
 
 /**
  * Filters upload paths (to fix Windows issues).
- * 
+ *
  * @param type $args
  * @return type
  */
@@ -843,12 +827,12 @@ function wpcf_fields_image_uploads_realpath( $args ) {
         if ( isset( $args[$fix] ) ) {
             /*
              * Since 1.1.5
-             * 
+             *
              * We need realpath(), open_basedir restriction check
-             * 
+             *
              * Suppressing warnings, checking realpath returning FALSE, check
              * if open_basedir ini is set.
-             * 
+             *
              * https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/153462252/comments
              * http://php.net/manual/en/ini.sect.safe-mode.php
              * http://php.net/manual/en/ini.core.php#ini.open-basedir
@@ -917,12 +901,12 @@ function wpcf_image_resize( $file, $max_w, $max_h, $crop = false,
 
     $size = @getimagesize( $file );
     if ( !$size )
-        return new WP_Error( 'invalid_image', __( 'Could not read image size' ), $file );
+        return new WP_Error( 'invalid_image', __( 'Could not read image size', 'wpcf' ), $file );
     list($orig_w, $orig_h, $orig_type) = $size;
 
     $dims = image_resize_dimensions( $orig_w, $orig_h, $max_w, $max_h, $crop );
     if ( !$dims )
-        return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ) );
+        return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions', 'wpcf' ) );
     list($dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h) = $dims;
 
     $newimage = wp_imagecreatetruecolor( $dst_w, $dst_h );
@@ -952,10 +936,10 @@ function wpcf_image_resize( $file, $max_w, $max_h, $crop = false,
 
     if ( IMAGETYPE_GIF == $orig_type ) {
         if ( !imagegif( $newimage, $destfilename ) )
-            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid' ) );
+            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid', 'wpcf' ) );
     } elseif ( IMAGETYPE_PNG == $orig_type ) {
         if ( !imagepng( $newimage, $destfilename ) )
-            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid' ) );
+            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid', 'wpcf' ) );
     } else {
         // all other formats are converted to jpg
         if ( 'jpg' != $ext && 'jpeg' != $ext )
@@ -963,7 +947,7 @@ function wpcf_image_resize( $file, $max_w, $max_h, $crop = false,
         if ( !imagejpeg( $newimage, $destfilename,
                         apply_filters( 'jpeg_quality', $jpeg_quality,
                                 'image_resize' ) ) )
-            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid' ) );
+            return new WP_Error( 'resize_path_invalid', __( 'Resize path invalid', 'wpcf' ) );
     }
 
     imagedestroy( $newimage );
@@ -978,9 +962,9 @@ function wpcf_image_resize( $file, $max_w, $max_h, $crop = false,
 
 /**
  * Fixes for Win.
- * 
+ *
  * For now we fix file path to have unified type slashes.
- * 
+ *
  * @param type $file
  * @param type $attachment_id
  * @return type
@@ -1002,10 +986,10 @@ function wpcf_fields_image_win32_update_attached_file_filter( $file,
 
 /**
  * Filters image view.
- * 
+ *
  * This is added to handle image 'url' parameter.
  * We need to unwrap value. Also added to avoid cludging frontend.php.
- * 
+ *
  * @param boolean $params
  * @param type $field
  * @return boolean
@@ -1030,7 +1014,7 @@ function wpcf_fields_image_view_filter( $output, $value, $type, $slug, $name,
 
 /**
  * Adds image to library.
- * 
+ *
  * @param type $post
  * @param type $abspath
  */
@@ -1057,21 +1041,24 @@ function wpcf_image_add_to_library( $post, $abspath ){
 
 /**
  * Checks if image is attachment.
- * 
- * @global type $wpdb
+ *
+ * @global object $wpdb
  * @param type $guid
  * @return type
  */
 function wpcf_image_is_attachment( $guid ) {
     global $wpdb;
-    return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $guid ) );
+    return $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+            $guid
+        )
+    );
 }
 
 /**
  * Gets attachment URL (in uploads, root or date structure).
- * 
+ *
  * @param type $abspath
  * @return type
  */
@@ -1082,7 +1069,7 @@ function wpcf_image_attachment_url( $abspath ) {
 
 /**
  * Returns path to attachment relative to upload_dir.
- * 
+ *
  * @param type $abspath
  * @return string '2014/01/img.jpg'
  */

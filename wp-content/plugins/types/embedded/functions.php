@@ -3,10 +3,6 @@
  * Basic and init functions.
  * Since Types 1.2 moved from /embedded/types.php
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/functions.php $
- * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
- * $LastChangedRevision: 1069430 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -70,7 +66,7 @@ function wpcf_get_file_relpath($file)
  */
 function wpcf_embedded_after_setup_theme_hook()
 {
-    $custom_types = get_option( 'wpcf-custom-types', array() );
+    $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     if ( !empty( $custom_types ) ) {
         foreach ( $custom_types as $post_type => $data ) {
             if ( !empty( $data['supports']['thumbnail'] ) ) {
@@ -91,12 +87,12 @@ function wpcf_embedded_after_setup_theme_hook()
  */
 function wpcf_init_custom_types_taxonomies()
 {
-    $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+    $custom_taxonomies = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
     if ( !empty( $custom_taxonomies ) ) {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/custom-taxonomies.php';
         wpcf_custom_taxonomies_init();
     }
-    $custom_types = get_option( 'wpcf-custom-types', array() );
+    $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     if ( !empty( $custom_types ) ) {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/custom-types.php';
         wpcf_custom_types_init();
@@ -132,73 +128,39 @@ function wpcf_embedded_check_import()
             return false;
         }
         if ( $timestamp > get_option( 'wpcf-types-embedded-import', 0 ) ) {
-            if ( !$auto_import ) {
-                $link = "<a href=\"" . admin_url( '?types-embedded-import=1&amp;_wpnonce=' . wp_create_nonce( 'embedded-import' ) ) . "\">";
-                $text = sprintf( __( 'You have Types import pending. %sClick here to import.%s %sDismiss message.%s',
-                                'wpcf' ), $link, '</a>',
-                        "<a onclick=\"jQuery(this).parent().parent().fadeOut();\" class=\"wpcf-ajax-link\" href=\""
-                        . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=dismiss_message&amp;id='
-                                . $timestamp . '&amp;_wpnonce=' . wp_create_nonce( 'dismiss_message' ) ) . "\">",
-                        '</a>' );
-                wpcf_admin_message( $text );
-            }
-            if ( $auto_import || (isset( $_GET['types-embedded-import'] ) && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( $_GET['_wpnonce'],
-                            'embedded-import' )) ) {
+            if (
+                isset( $_GET['types-embedded-import'] )
+                && isset( $_GET['_wpnonce'] )
+                && wp_verify_nonce( $_GET['_wpnonce'], 'embedded-import')
+            ) {
                 if ( file_exists( WPCF_EMBEDDED_ABSPATH . '/settings.xml' ) ) {
                     $_POST['overwrite-groups'] = 1;
                     $_POST['overwrite-fields'] = 1;
                     $_POST['overwrite-types'] = 1;
                     $_POST['overwrite-tax'] = 1;
-//                    $_POST['delete-groups'] = 0;
-//                    $_POST['delete-fields'] = 0;
-//                    $_POST['delete-types'] = 0;
-//                    $_POST['delete-tax'] = 0;
                     $_POST['post_relationship'] = 1;
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
                     $data = @file_get_contents( WPCF_EMBEDDED_ABSPATH . '/settings.xml' );
                     wpcf_admin_import_data( $data, false, 'types-auto-import' );
                     update_option( 'wpcf-types-embedded-import', $timestamp );
-                    wp_redirect( admin_url() );
+                    wp_safe_redirect( esc_url_raw(admin_url() ));
                 } else {
                     $code = __( 'settings.xml file missing', 'wpcf' );
                     wpcf_admin_message( $code, 'error' );
                 }
             }
+            else {
+                $link = "<a href=\"" . admin_url( '?types-embedded-import=1&amp;_wpnonce=' . wp_create_nonce( 'embedded-import' ) ) . "\">";
+                $text = sprintf( __( 'You have Types import pending. %sClick here to import.%s %sDismiss message.%s', 'wpcf' ), $link, '</a>',
+                    "<a onclick=\"jQuery(this).parent().parent().fadeOut();\" class=\"wpcf-ajax-link\" href=\""
+                    . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=dismiss_message&amp;id='
+                    . $timestamp . '&amp;_wpnonce=' . wp_create_nonce( 'dismiss_message' ) ) . "\">",
+                        '</a>' );
+                wpcf_admin_message( $text );
+            }
         }
     }
-}
-
-/**
- * Display information about upgrading to the plugin version of types.
- *
- */
-function wpcf_promote_types_admin()
-{
-    $custom_types = get_option( 'wpcf-custom-types', array() );
-
-    ?>
-
-    <?php
-    if ( sizeof( $custom_types ) > 0 ) {
-        echo '<p>' . __( 'Types creates Custom Post Types. These are user-defined WordPress content types. On your theme the following types are defined:',
-                'wpcf' ) . "</p>\n";
-        echo "<ul style='margin-left:20px;'>\n";
-        foreach ( $custom_types as $type ) {
-            echo "<li>" . $type['labels']['name'] . "</li>\n";
-        }
-        echo "</ul>\n";
-    }
-
-    ?>
-    <p><?php
-        echo sprintf( __( 'If you want to edit these or create your own you can download the full version of <strong>Types</strong> from <a href="%s">%s</a>',
-                        'wpcf' ), 'http://wordpress.org/extend/plugins/types/',
-                'http://wordpress.org/extend/plugins/types/' );
-
-        ?></p>
-
-    <?php
 }
 
 /**
@@ -207,7 +169,7 @@ function wpcf_promote_types_admin()
  * @param type $action
  */
 function wpcf_types_cf_under_control( $action = 'add', $args = array(),
-        $post_type = 'wp-types-group', $meta_name = 'wpcf-fields' ) {
+        $post_type = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME, $meta_name = 'wpcf-fields' ) {
     global $wpcf_types_under_control;
     $wpcf_types_under_control['errors'] = array();
     switch ( $action ) {
@@ -382,6 +344,9 @@ function wpcf_get_settings($specific = false)
         'images_remote' => 0,
         'images_remote_cache_time' => '36',
         'help_box' => 'by_types',
+        'hide_standard_custom_fields_metabox' => 'show',
+        'postmeta_unfiltered_html' => 'on',
+        'usermeta_unfiltered_html' => 'on',
     );
     $settings = wp_parse_args( get_option( 'wpcf_settings', array() ), $defaults );
     $settings = apply_filters( 'types_settings', $settings );
@@ -510,13 +475,20 @@ function wpcf_enqueue_scripts()
         /**
          * Basic JS
          */
-        wp_enqueue_script( 'wpcf-js', WPCF_RES_RELPATH . '/js/basic.js',
-                array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-tabs'),
-                WPCF_VERSION.'-C1' );
-        /**
-         * Basic CSS
-         */
-        wp_enqueue_style('wpcf-css');
+        wp_register_script(
+            'wpcf-js',
+            WPCF_RES_RELPATH . '/js/basic.js',
+            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-tabs', 'toolset-colorbox'),
+            WPCF_VERSION
+        );
+        wp_localize_script(
+            'wpcf-js',
+            'wpcf_js',
+            array(
+                'close' => __('Close', 'wpcf'),
+            )
+        );
+        wp_enqueue_script('wpcf-js');
     }
     /**
      * Basic JS
@@ -525,7 +497,7 @@ function wpcf_enqueue_scripts()
         'wpcf-js-embedded',
         WPCF_EMBEDDED_RES_RELPATH . '/js/basic.js',
         array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-tabs'),
-        WPCF_VERSION.'-D9'
+        WPCF_VERSION
     );
     /*
      *
@@ -553,18 +525,32 @@ function wpcf_enqueue_scripts()
 
     // Conditional
     wp_enqueue_script( 'types-conditional' );
-    wpcf_admin_add_js_settings( 'wpcfConditionalVerify_nonce',
-            wp_create_nonce( 'cd_verify' )
-    );
-    wpcf_admin_add_js_settings( 'wpcfConditionalVerifyGroup',
-            wp_create_nonce( 'cd_group_verify' ) );
-
     // RTL
     if ( is_rtl() ) {
         wp_enqueue_style(
                 'wpcf-rtl', WPCF_EMBEDDED_RES_RELPATH . '/css/rtl.css',
                 array('wpcf-css-embedded'), WPCF_VERSION
         );
+    }
+
+    /**
+     * select2
+     */
+    if ( !wp_script_is('select2', 'registered') ) {
+        $select2_version = '3.5.2';
+        wp_register_script(
+            'select2',
+            WPCF_EMBEDDED_RELPATH. '/common/utility/js/select2.min.js',
+            array( 'jquery' ),
+            $select2_version
+        );
+        wp_register_style(
+            'select2',
+            WPCF_EMBEDDED_RELPATH. '/common/utility/css/select2/select2.css',
+            array(),
+            $select2_version
+        );
+        wp_enqueue_style('select2');
     }
 }
 
@@ -577,9 +563,6 @@ function wpcf_enqueue_scripts()
 function wpcf_edit_post_screen_scripts()
 {
     wpcf_enqueue_scripts();
-    wp_enqueue_script( 'wpcf-fields-post',
-            WPCF_EMBEDDED_RES_RELPATH . '/js/fields-post.js', array('jquery'),
-            WPCF_VERSION );
     // TODO Switch to 1.11.1 jQuery Validation
 //        wp_enqueue_script( 'types-js-validation' );
     if ( !defined( 'WPTOOLSET_FORMS_ABSPATH' ) ) {
@@ -592,14 +575,14 @@ function wpcf_edit_post_screen_scripts()
                 . 'jquery-form-validation/additional-methods.min.js',
                 array('jquery'), WPCF_VERSION );
     }
-    wp_enqueue_style( 'wpcf-fields-basic',
+    wp_enqueue_style( 'wpcf-css-embedded',
             WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION );
     wp_enqueue_style( 'wpcf-fields-post',
             WPCF_EMBEDDED_RES_RELPATH . '/css/fields-post.css',
-            array('wpcf-fields-basic'), WPCF_VERSION );
+            array('wpcf-css-embedded'), WPCF_VERSION );
     wp_enqueue_style( 'wpcf-usermeta',
             WPCF_EMBEDDED_RES_RELPATH . '/css/usermeta.css',
-            array('wpcf-fields-basic'), WPCF_VERSION );
+            array('wpcf-css-embedded'), WPCF_VERSION );
     wp_enqueue_script( 'toolset-colorbox' );
     wp_enqueue_style( 'toolset-colorbox' );
     wp_enqueue_style( 'toolset-font-awesome' );
@@ -623,7 +606,7 @@ function wpcf_is_embedded()
  */
 function wpcf_get_custom_post_type_settings($item)
 {
-    $custom = get_option( 'wpcf-custom-types', array() );
+    $custom = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     return !empty( $custom[$item] ) ? $custom[$item] : array();
 }
 
@@ -635,7 +618,7 @@ function wpcf_get_custom_post_type_settings($item)
  */
 function wpcf_get_custom_taxonomy_settings($item)
 {
-    $custom = get_option( 'wpcf-custom-taxonomies', array() );
+    $custom = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
     return !empty( $custom[$item] ) ? $custom[$item] : array();
 }
 
@@ -736,3 +719,86 @@ function types_validate($method, $args)
     }
     return false;
 }
+
+/**
+ * Gets post_types supported by specific group.
+ *
+ * @param type $group_id
+ * @return array list of custom post types belongs to selected group
+ */
+function wpcf_admin_get_post_types_by_group($group_id)
+{
+    $post_types = get_post_meta( $group_id, '_wp_types_group_post_types', true );
+    if ( $post_types == 'all' ) {
+        return array();
+    }
+    $post_types = explode( ',', trim( $post_types, ',' ) );
+    return $post_types;
+}
+
+/**
+ * Filter return the array of Types fields
+ *
+ * Filter return the array of Types active fields
+ *
+ * @since x.x.x
+ *
+ * @param array fields Unused argument
+ */
+add_filter('wpcf_get_all_fields_slugs', 'wpcf_get_all_fields_slugs');
+
+/**
+ * Function return the array of Types fields.
+ *
+ * Function return the array of Types active fields slugs.
+ *
+ * @since x.x.x
+ *
+ * @return array List of slugs
+ */
+function wpcf_get_all_fields_slugs($fields)
+{
+    $post_meta_keys = array();
+    foreach (wpcf_admin_fields_get_fields( true, true ) as $key => $data ) {
+        $post_meta_keys[] = $data['meta_key'];
+    }
+    return $post_meta_keys;
+}
+
+function wpcf_get_builtin_in_post_types()
+{
+    static $post_types = array();
+    if ( empty( $post_types ) ) {
+        $post_types = get_post_types(array('public' => true, '_builtin' => true));
+    }
+    return $post_types;
+}
+
+function wpcf_is_builtin_post_types($post_type)
+{
+    $post_types = wpcf_get_builtin_in_post_types();
+    return in_array($post_type, $post_types);
+}
+
+/**
+ * Adds JS settings.
+ *
+ * @static array $settings
+ * @param type $id
+ * @param type $setting
+ * @return string
+ */
+function wpcf_admin_add_js_settings( $id, $setting = '' )
+{
+    static $settings = array();
+    $settings['wpcf_nonce_ajax_callback'] = '\'' . wp_create_nonce( 'execute' ) . '\'';
+    $settings['wpcf_cookiedomain'] = '\'' . COOKIE_DOMAIN . '\'';
+    $settings['wpcf_cookiepath'] = '\'' . COOKIEPATH . '\'';
+    if ( $id == 'get' ) {
+        $temp = $settings;
+        $settings = array();
+        return $temp;
+    }
+    $settings[$id] = $setting;
+}
+

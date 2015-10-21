@@ -1,8 +1,58 @@
-= 1.5.1.1 =
-* Changed products urls from S3 to CF
+= 1.6.7 =
+* Fixed a bug causing repeated calls to the Toolset api to validate the user subscription
+* Use https for API urls
+
+= 1.6.6 =
+* Fixed the 'Call to undefined function get_plugins()' issue
+
+= 1.6.5 =
+* Added configuration file for composer
+* Updated how free plugins are shown on the plugins list (commercial tab)
+* API calls for manipulating translation service preferences
+* Support for hosting custom Installer packages on wpml.org
+* Fixed a warning that was showing when using the OTGS_DISABLE_AUTO_UPDATES constant before any product data was downloaded
+* Changed the frequency with which product updates are checked automatically (24 hours)
+* Improved reporting for version numbers
+
+= 1.6.4 =
+* Enabled the OTGS_DISABLE_AUTO_UPDATES constant for theme update checks
+* Fixed a bug that was causing Register links to show for all installed plugins
+
+= 1.6.3 =
+* Fixed performance issue related to themes upgrade logic
+
+= 1.6 =
+* Improved the way plugins are matched: not just by the folder name (slug) but also by name
+* Added support for installing and upgrading themes from repositories (currently: Toolset themes)
+* Added support for 'alias' plugins on the toolset and wpml repositories (currently: Types)
+* Enhanced the progress animation during plugins downloading
+
+= 1.5.6 =
+* Updated the translations
+* Fix for WPML 3.2 conditional upgrade logic
+
+= 1.5.5 =
+* Fixed the logic for the high_priority parameter
+* Fixed js bug causing a conflict with NextGen
+* Fixed bug preventing users to install and upgrade Types when they didn't have a Toolset subscription
+* Fixed bug preventing users to upgrade from the embedded Types to the full version
+
+= 1.5.4 =
+* Option to disable auto-updates
+* Escaped urls generated with add_query_arg
+
+= 1.5.3 =
+* Fixed bug in WP_Installer::custom_plugins_api_call (filter for plugins_api) causing conflicts with other filters for plugins_api
+
+= 1.5.2 =
+* More meaningful errors when plugin downloads fail
+* WordPress 4.2 compatibility
+* Performance improvements (will not load in places where it's not needed and not make unnecessary requests to the CDN)
+* Support putting deps.xml config file in the theme folder (root)
+* Included code for importing data for toolset plugins
+* Use CloudFront urls for products list files
 
 = 1.5.1 =
-
 * Fix for allowing embedded plugins to be updated
 * Logic for the migration from embedded plugins to full plugins
 

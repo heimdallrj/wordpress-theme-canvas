@@ -33,8 +33,7 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
     $form['name'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Name of custom field', 'wpcf' ),
-        '#description' => __( 'Under this name field will be stored in DB (sanitized)',
-                'wpcf' ),
+        '#description' => __( 'Under this name field will be stored in DB (sanitized)', 'wpcf' ),
         '#name' => 'name',
         '#attributes' => array('class' => 'wpcf-forms-set-legend'),
         '#validate' => array('required' => array('value' => true)),
@@ -61,8 +60,7 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
                 '#attributes' => array('class' => 'wpcf-cb-save-empty-migrate', 'onclick' => $cb_migrate_save),
             ),
             'no' => array(
-                '#title' => __( "When unchecked, don't save anything to the database",
-                        'wpcf' ),
+                '#title' => __( "When unchecked, don't save anything to the database", 'wpcf' ),
                 '#value' => 'no',
                 '#attributes' => array('class' => 'wpcf-cb-save-empty-migrate', 'onclick' => $cb_migrate_do_not_save),
             ),
@@ -112,7 +110,7 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
         . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_checkboxes_option&amp;_wpnonce='
                 . wp_create_nonce( 'add_checkboxes_option' ) . '&amp;wpcf_ajax_update_add='
                 . $id . '-sortable&amp;parent_name=' . urlencode( $parent_name )
-                . '&amp;page='. $_GET['page']
+                . '&amp;page='. sanitize_text_field( $_GET['page'] )
                 . '&amp;count=' . $count)
         . '" onclick="wpcfFieldsFormCountOptions(jQuery(this));"'
         . ' class="button-secondary wpcf-ajax-link">'
@@ -136,9 +134,8 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         $form_data = array(), $field = array() ) {
     $id = isset( $form_data['key'] ) ? $form_data['key'] : 'wpcf-fields-checkboxes-option-' . wpcf_unique_id( serialize( $form_data ) . $parent_name );
     $form = array();
-    $count = isset( $_GET['count'] ) ? $_GET['count'] : 1;
-    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Checkbox title',
-                    'wpcf' ) . ' 1';
+    $count = isset( $_GET['count'] ) ? intval( $_GET['count'] ) : 1;
+    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . intval( $_GET['count'] ) : __( 'Checkbox title', 'wpcf' ) . ' 1';
     $title = isset( $form_data['title'] ) ? $form_data['title'] : $title;
     $form[$id . '-id'] = $id;
     $form[$id . '-drag'] = array(
@@ -199,8 +196,7 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         '#name' => $parent_name . '[options][' . $id . '][display]',
         '#options' => array(
             'display_from_db' => array(
-                '#title' => __( 'Display the value of this field from the database',
-                        'wpcf' ),
+                '#title' => __( 'Display the value of this field from the database', 'wpcf' ),
                 '#name' => $parent_name . '[options][' . $id . '][display]',
                 '#value' => 'db',
                 '#inline' => true,
@@ -220,12 +216,18 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         '#name' => $parent_name . '[options][' . $id . '][display_value_not_selected]',
         '#value' => isset( $form_data['display_value_not_selected'] ) ? $form_data['display_value_not_selected'] : '',
         '#inline' => true,
+        '#attributes' => array(
+            'placeholder' => __('Enter not selected value', 'wpcf'),
+        ),
     );
     $form[$id]['display-value-2'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Selected:', 'wpcf' ),
         '#name' => $parent_name . '[options][' . $id . '][display_value_selected]',
         '#value' => isset( $form_data['display_value_selected'] ) ? $form_data['display_value_selected'] : '',
+        '#attributes' => array(
+            'placeholder' => __('Enter selected value', 'wpcf'),
+        ),
     );
     $form[$id . 'drag-close'] = array(
         '#type' => 'markup',
@@ -244,10 +246,9 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
 function wpcf_fields_checkboxes_get_option_alt_text( $id, $parent_name = '',
         $form_data = array() ) {
     $form = array();
-    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Checkbox title',
-                    'wpcf' ) . ' 1';
+    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Checkbox title', 'wpcf' ) . ' 1';
     $title = isset( $form_data['title'] ) ? $form_data['title'] : $title;
-    $value = isset( $_GET['count'] ) ? $_GET['count'] : 1;
+    $value = isset( $_GET['count'] ) ? intval( $_GET['count'] ) : 1;
     $value = isset( $form_data['value'] ) ? $form_data['value'] : $value;
     $value = isset( $form_data['display_value'] ) ? $form_data['display_value'] : $value;
     $form = array(

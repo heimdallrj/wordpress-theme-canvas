@@ -60,26 +60,6 @@ var tChildTable = (function($) {
                 var this_id = $(this).attr('id'), catAddBefore, catAddAfter, taxonomy, settingName, typesID;
                 taxonomy = $(this).data('types-reltax');
                 typesID = $(this).attr('id');
-//                settingName = taxonomy + '_tab';
-//                if (taxonomy == 'category')
-//                    settingName = 'cats';
-
-                // Types: TABS (disabled)
-                // TODO: move to jQuery 1.3+, support for multiple hierarchical taxonomies, see wp-lists.js
-//                $('a', '#' + taxonomy + '-tabs').click(function() {
-//                    var t = $(this).attr('href');
-//                    $(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
-//                    $('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
-//                    $(t).show();
-//                    if ('#' + taxonomy + '-all' == t)
-//                        deleteUserSetting(settingName);
-//                    else
-//                        setUserSetting(settingName, 'pop');
-//                    return false;
-//                });
-
-//                if (getUserSetting(settingName))
-//                    $('a[href="#' + taxonomy + '-pop"]', '#' + taxonomy + '-tabs').click();
 
                 // Ajax Cat
                 $('#new' + typesID).one('focus', function() {
@@ -140,8 +120,6 @@ var tChildTable = (function($) {
     }
 }(jQuery));
 
-
-
 /*
  * Non-hierarchical taxonomies form handling on post edit screen.
  */
@@ -149,7 +127,7 @@ var tChildTable = (function($) {
 
     tTagBox = {
         clean: function(tags) {
-            var comma = postL10n.comma;
+            var comma = postL10n.comma || window.tagsBoxL10n.tagDelimiter;
             if (',' !== comma)
                 tags = tags.replace(new RegExp(comma, 'g'), ',');
             tags = tags.replace(/\s*,\s*/g, ',').replace(/,+/g, ',').replace(/[,\s]+$/, '').replace(/^[,\s]+/, '');
@@ -159,7 +137,7 @@ var tChildTable = (function($) {
         },
         parseTags: function(el) {
             var id = el.id, num = id.split('-check-num-')[1], taxbox = $(el).closest('.js-types-child-tagsdiv'),
-                    thetags = taxbox.find('.the-tags'), comma = postL10n.comma,
+                    thetags = taxbox.find('.the-tags'), comma = postL10n.comma || window.tagsBoxL10n.tagDelimiter,
                     current_tags = thetags.val().split(comma), new_tags = [];
             delete current_tags[num];
 
@@ -179,14 +157,16 @@ var tChildTable = (function($) {
             var thetags = $('.the-tags', el),
                     tagchecklist = $('.tagchecklist', el),
                     id = $(el).attr('id'),
-                    current_tags, disabled;
+                    current_tags, disabled,
+                    comma = postL10n.comma || window.tagsBoxL10n.tagDelimiter;
 
-            if (!thetags.length)
+            if (!thetags.length) {
                 return;
+            }
 
             disabled = thetags.prop('disabled');
 
-            current_tags = thetags.val().split(postL10n.comma);
+            current_tags = thetags.val().split(comma);
             tagchecklist.empty();
 
             $.each(current_tags, function(key, val) {
@@ -194,8 +174,9 @@ var tChildTable = (function($) {
 
                 val = $.trim(val);
 
-                if (!val)
+                if (!val) {
                     return;
+                }
 
                 // Create a new span, and ensure the text is properly escaped.
                 span = $('<span />').text(val);
@@ -217,7 +198,7 @@ var tChildTable = (function($) {
             a = a || false;
             var tags = $('.the-tags', el),
                     newtag = $('input.js-types-newtag', el),
-                    comma = postL10n.comma,
+                    comma = postL10n.comma || window.tagsBoxL10n.tagDelimiter,
                     newtags, text;
 
             text = a ? $(a).text() : newtag.val();
@@ -229,20 +210,23 @@ var tChildTable = (function($) {
             tags.val(newtags);
             this.quickClicks(el);
 
-            if (!a)
+            if (!a) {
                 newtag.val('');
-            if ('undefined' == typeof(f))
+            }
+
+            if ('undefined' == typeof(f)) {
                 newtag.focus();
+            }
 
             return false;
         },
         get: function(id) {
-//		var tax = id.substr(id.indexOf('-')+1);
             var tax = $('#' + id).data('types-tax');
 
             $.post(ajaxurl, {'action': 'get-tagcloud', 'tax': tax}, function(r, stat) {
-                if (0 == r || 'success' != stat)
+                if (0 == r || 'success' != stat) {
                     r = wpAjax.broken;
+                }
 
                 r = $('<p id="tagcloud-' + id + '" class="the-tagcloud">' + r + '</p>');
                 $('a', r).click(function() {
@@ -285,9 +269,9 @@ var tChildTable = (function($) {
                     return false;
                 }
             }).each(function() {
-//			var tax = $(this).closest('div.tagsdiv').attr('id');
-                var tax = $(this).data('types-tax');
-                $(this).suggest(ajaxurl + '?action=ajax-tag-search&tax=' + tax, {delay: 500, minchars: 2, multiple: true, multipleSep: postL10n.comma + ' '});
+                var tax = $(this).data('types-tax'),
+                comma = postL10n.comma || window.tagsBoxL10n.tagDelimiter;
+                $(this).suggest(ajaxurl + '?action=ajax-tag-search&tax=' + tax, {delay: 500, minchars: 2, multiple: true, multipleSep: comma + ' '});
             });
 
             // save tags on post save/publish
@@ -314,12 +298,8 @@ jQuery(document).ready(function($) {
     tChildTable.init();
 });
 
-
-
-
-
 jQuery(document).ready(function($) {
-
+    var frame_relationship = [];
     window.wpcf_pr_edited = false;
     // Mark as edited field
     $('#wpcf-post-relationship table').on('click', ':input', function() {
@@ -387,9 +367,8 @@ jQuery(document).ready(function($) {
         }
         jQuery(this).fadeOut().next().slideDown();
     });
-    /*
-     * 
-     * 
+
+    /**
      * POST EDIT SCREEN
      */
     $('#wpcf-post-relationship').on('click', '.js-types-add-child', function() {
@@ -400,8 +379,7 @@ jQuery(document).ready(function($) {
             dataType: 'json',
             cache: false,
             beforeSend: function() {
-                $button.after('<div style="margin-top:20px;"></div>').next()
-                        .addClass('wpcf-ajax-loading-small');
+                $button.after('<div style="margin-top:20px;"></div>').next().addClass('wpcf-ajax-loading-small');
             },
             success: function(data) {
                 if (data != null) {
@@ -413,14 +391,25 @@ jQuery(document).ready(function($) {
                             wptCallbacks.reset.fire($('tbody tr', $table).first());
                         }
                     }
-                    if (typeof data.conditionals != 'undefined'
-                            && typeof wptCond != 'undefined') {
+                    if (typeof data.conditionals != 'undefined' && typeof wptCond != 'undefined') {
                         wptCond.addConditionals(data.conditionals);
+                    }
+                    if ('undefined' != typeof data.child_id) {
+                        $('#types-child-row-'+data.child_id).on('click', '.js-wpt-file-upload', function(event) {
+                            wptFile.bindOpen($(this), false);
+                        });
                     }
                 }
                 $button.next().fadeOut(function() {
                     $(this).remove();
                 });
+                if ( 'undefined' != typeof wptFile ) {
+                    wptFile.init();
+                }
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
@@ -464,6 +453,10 @@ jQuery(document).ready(function($) {
                     }
                 }
                 $('#wpcf-post-relationship .wpcf-pr-pagination-select').trigger('change');
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
@@ -524,6 +517,10 @@ jQuery(document).ready(function($) {
                 $button.next().fadeOut(function() {
                     $(this).remove();
                 });
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
@@ -544,8 +541,7 @@ jQuery(document).ready(function($) {
             dataType: 'json',
             cache: false,
             beforeSend: function() {
-                $button.after('<div style="margin-top:20px;"></div>').next()
-                        .addClass('wpcf-ajax-loading-small');
+                $button.after('<div style="margin-top:20px;"></div>').next().addClass('wpcf-ajax-loading-small');
             },
             success: function(data) {
                 if (data != null) {
@@ -556,14 +552,17 @@ jQuery(document).ready(function($) {
                             wptCallbacks.reset.fire($update);
                         }
                     }
-                    if (typeof data.conditionals != 'undefined'
-                            && typeof wptCond != 'undefined') {
+                    if (typeof data.conditionals != 'undefined' && typeof wptCond != 'undefined') {
                         wptCond.addConditionals(data.conditionals);
                     }
                 }
                 $button.next().fadeOut(function() {
                     $(this).remove();
                 });
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
@@ -603,6 +602,10 @@ jQuery(document).ready(function($) {
                 $button.next().fadeOut(function() {
                     $(this).remove();
                 });
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
@@ -654,11 +657,30 @@ jQuery(document).ready(function($) {
                         if (typeof wptCallbacks != 'undefined') {
                             wptCallbacks.reset.fire('#'+rowId);
                         }
+                        if ( 'undefined' != typeof wptFile ) {
+                            wptFile.init();
+                        }
                     }
-                    if (typeof data.conditionals != 'undefined'
-                            && typeof wptCond != 'undefined') {
+                    if (typeof data.conditionals != 'undefined' && typeof wptCond != 'undefined') {
                         wptCond.addConditionals(data.conditionals);
                     }
+                    /**
+                     * rebind images
+                     */
+                    if ( 'function' == typeof bind_colorbox_to_thumbnail_preview ) {
+                        bind_colorbox_to_thumbnail_preview();
+                    }
+                    /**
+                     * show errors
+                     */
+                    $('#wpcf-post-relationship div.message').detach();
+                    if ('undefined' != typeof data.errors && 0 < data.errors.length ) {
+                        $('#wpcf-post-relationship h3.hndle').after(data.errors);
+                    }
+                    /**
+                     * select2
+                     */
+                    wpcfBindSelect2($);
                 }
             }
         });
@@ -717,16 +739,87 @@ jQuery(document).ready(function($) {
                             wptCallbacks.reset.fire('#'+updateId);
                         }
                     }
-                    if (typeof data.conditionals != 'undefined'
-                            && typeof wptCond != 'undefined') {
+                    if (typeof data.conditionals != 'undefined' && typeof wptCond != 'undefined') {
                         wptCond.addConditionals(data.conditionals);
                     }
+                    if ( 'undefined' != typeof wptFile ) {
+                        wptFile.init();
+                    }
+                    /**
+                     * rebind images
+                     */
+                    if ( 'function' == typeof bind_colorbox_to_thumbnail_preview ) {
+                        bind_colorbox_to_thumbnail_preview();
+                    }
+                    /**
+                     * show errors
+                     */
+                    $('#wpcf-post-relationship div.message').detach();
+                    if ('undefined' != typeof data.errors && 0 < data.errors.length ) {
+                        $('#wpcf-post-relationship h3.hndle').after(data.errors);
+                    }
                 }
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
         return false;
     });
 
+    /**
+     * feature image
+     */
+    $('#wpcf-post-relationship').on('click', '.feature-image', function(event) {
+        var $el = $(this);
+        var $data = $el.data();
+        var $id = $el.attr('id');
+        if ( 0 == $data.value ) {
+            if ( event ) {
+                event.preventDefault();
+            }
+            // If the media frame already exists, reopen it.
+            if ( frame_relationship[$id] ) {
+                frame_relationship[$id].open();
+                return;
+            }
+            // Create the media frame.
+            frame_relationship[$id] = wp.media.frames.customHeader = wp.media({
+                // Set the title of the modal.
+                title: $el.html(),
+                // Tell the modal to show only images.
+                library: {
+                    type: "image"
+                },
+            });
+            // When an image is selected, run a callback.
+            frame_relationship[$id].on( 'select', function() {
+                // Grab the selected attachment.
+                var attachment = frame_relationship[$id].state().get('selection').first();
+
+                var $parent = $el.parent();
+                if ( 0 == $('.wpt-file-preview img', $parent).length) {
+                    $('.wpt-file-preview', $parent).append('<img src="">');
+                }
+                if ( 'undefined' != typeof attachment.id ) {
+                    $('.feature-image-id', $el.parent()).val(attachment.id);
+                    $el.html($data.remove);
+                }
+                if ( 'undefined' != typeof attachment.attributes.sizes.thumbnail ) {
+                    $('.wpt-file-preview img', $parent).attr('src', attachment.attributes.sizes.thumbnail.url);
+                }
+                frame_relationship[$id].close();
+            });
+            frame_relationship[$id].open();
+        } else {
+            $('.feature-image-id', $el.parent()).val(0);
+            $('.wpt-file-preview', $el.parent()).html('');
+
+            $(this).html($data.set);
+        }
+        return false;
+    });
     // We need to hide the _wpcf_belongs_xxxx_id field for WPML.
 
     jQuery('#icl_mcs_details table tbody tr').each(function() {
@@ -764,6 +857,10 @@ jQuery(document).ready(function($) {
                         wptCond.addConditionals(data.conditionals);
                     }
                 }
+                /**
+                 * select2
+                 */
+                wpcfBindSelect2($);
             }
         });
     });
@@ -816,3 +913,95 @@ function wpcfRelationshipInit(selector, context) {
         });
     });
 }
+
+/**
+ * select2
+ */
+function wpcfBindSelect2($) {
+    $('.wpcf-pr-belongs').select2({
+        id: function(item){
+            return item.ID;
+        },
+        allowClear: true,
+        placeholder: $(this).data('placeholder'),
+        minimumInputLength: 1,
+        formatInputTooShort: $(this).data('input-too-short'),
+        ajax: {
+            url: ajaxurl,
+            dataType: 'json',
+            quietMillis: 100,
+            data: function (term, page) {
+                return {
+                    nounce: $(this).data('nounce'),
+                    post_id: $(this).data('post-id'),
+                    post_type: $(this).data('post-type'),
+                    action: 'wpcf_relationship_search',
+                    page: page || 1,
+                    s: term, // search term
+                };
+            },
+            results: function (data, page) {
+                return { results: data.items };
+            },
+            cache: true
+        },
+        initSelection: function(element, callback) {
+            var id = $(element).val();
+            if (0 < parseInt(id)) {
+                $(element).select2("data", { ID: 0, post_title: $(element).data('loading') });
+                $(element).select2("enable", false);
+                $.ajax({
+                    url: ajaxurl,
+                    dataType: "json",
+                    data: {
+                        nounce: element.data('nounce'),
+                        p: id,
+                        post_id: element.data('post-id'),
+                        post_type: element.data('post-type'),
+                        action: 'wpcf_relationship_entry'
+                    }
+                }).done(function(data) {
+                    $(element).select2("enable", true);
+                    callback(data);
+                });
+            }
+        },
+        formatResult: function(item) {
+            return '<div data-id="'+item.ID+'" class="item">' + item.post_title + '</div>';
+        },
+        formatSelection: function(item) {
+            var target = $('#wpcf_pr_belongs_'+item.parent_id+'_'+item.post_type);
+            $.ajax({
+                url: ajaxurl,
+                dataType: "json",
+                data: {
+                    action: 'wpcf_relationship_save',
+                    nounce: target.data('nounce'),
+                    post_id: item.parent_id,
+                    post_type: item.post_type,
+                    p: item.ID
+                }
+            });
+            target.val(item.ID);
+            $('a.button', target.closest('.form-item')).attr('href', item.edit_link).removeClass('disabled');
+            return item.post_title;
+        },
+    }).on('select2-clearing', function() {
+        $.ajax({
+            url: ajaxurl,
+            dataType: "json",
+            data: {
+                nounce: $(this).data('nounce'),
+                post_id: $(this).data('post-id'),
+                post_type: $(this).data('post-type'),
+                action: 'wpcf_relationship_delete'
+            }
+        }).done(function(data) {
+            $('a.button', $(data.target)).addClass('disabled').attr('href', '#');
+        });
+    });
+}
+jQuery(document).ready(function($) {
+    wpcfBindSelect2($);
+});
+

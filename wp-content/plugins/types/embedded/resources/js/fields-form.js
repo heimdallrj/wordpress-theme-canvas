@@ -1,6 +1,6 @@
-/* 
+/*
  * Group edit page JS
- * 
+ *
  * This file should be used from now on as dedicated JS for group edit page.
  * Avoid adding new functionalities to basic.js
  *
@@ -9,10 +9,6 @@
  * @since Types 1.1.5
  * @autor srdjan
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/resources/js/fields-form.js $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -25,7 +21,7 @@ jQuery(document).ready(function($){
                 handle: 'img.js-types-sort-button',
                 start: function(e, ui){
                         ui.placeholder.height(ui.item.find('.wpcf-form-fieldset').height());
-                    }                
+                    }
             });
         }
     });
@@ -39,7 +35,6 @@ jQuery(document).ready(function($){
         start: function(e, ui){
                 ui.placeholder.height(ui.item.height() + 23);
             }
-        
     });
 
     $('.wpcf-fields-radio-sortable,.wpcf-fields-select-sortable').sortable({
@@ -48,7 +43,7 @@ jQuery(document).ready(function($){
         handle: 'img.js-types-sort-button',
         start: function(e, ui){
                 ui.placeholder.height(ui.item.height() - 2);
-            }                
+            }
     });
 
     $('.wpcf-fields-checkboxes-sortable').sortable({
@@ -57,7 +52,7 @@ jQuery(document).ready(function($){
         handle: 'img.js-types-sort-button',
         start: function(e, ui){
                 ui.placeholder.height(ui.item.height() + 13);
-            }                
+            }
     });
 
     $('[data-wpcf-type="checkbox"],[data-wpcf-type=checkboxes]').each( function() {
@@ -65,6 +60,16 @@ jQuery(document).ready(function($){
             wpcf_checkbox_value_zero($(this))
         });
         wpcf_checkbox_value_zero($(this));
+    });
+
+    /**
+     * confitonal logic button close on group edit screen
+     */
+    $('#conditional-logic-button-ok').live('click', function(){
+        $(this).parent().slideUp('slow', function() {
+            $('#conditional-logic-button-open').fadeIn();
+        });
+        return false;
     });
 });
 
@@ -75,15 +80,22 @@ function wpcf_checkbox_value_zero(field) {
         jQuery(field).prev().remove();
         jQuery(field).removeClass('wpcf-value-store-error-error');
     }
-    
+
     var value = jQuery(field).val();
     if (value === '') {
         passed = false;
         if (!jQuery(field).hasClass('wpcf-value-store-error-error')) {
             jQuery(field).before('<div class="wpcf-form-error">' + jQuery(field).data('required-message') + '</div>').addClass('wpcf-value-store-error-error');
+            var legend = jQuery(field).closest('div.ui-draggable').children('fieldset').children('legend');
+            if ( legend.hasClass('legend-collapsed') ) {
+                legend.click();
+            }
+            var fieldset = jQuery(field).closest('fieldset');
+            if ( jQuery('legend.legend-collapsed', fieldset ) ) {
+                jQuery('legend.legend-collapsed', fieldset).click();
+            }
         }
         jQuery(field).focus();
-
     }
     if (value === '0') {
         passed = false;
@@ -92,8 +104,6 @@ function wpcf_checkbox_value_zero(field) {
         }
         jQuery(field).focus();
     }
-    
     return !passed;
-
 }
 

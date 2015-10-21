@@ -1,17 +1,13 @@
 <?php
 /*
  * @since Types 1.2
- * 
+ *
  * All WPML specific functions should be moved here.
- * 
+ *
  * Mind wpml_action parameter for field.
  * Values:
  * 0 nothing (ignore), 1 copy, 2 translate
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/wpml.php $
- * $LastChangedDate: 2015-01-28 06:42:34 +0000 (Wed, 28 Jan 2015) $
- * $LastChangedRevision: 1077234 $
- * $LastChangedBy: iworks $
  *
  */
 
@@ -33,7 +29,7 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
     add_filter( 'types_taxonomy', 'wpcf_wpml_taxonomy_translate', 10, 3 );
 
     /*
-     * 
+     *
      * Filter terms used when:
      * - Displaying Group form
      * - Filtering Group on post edit screen
@@ -73,7 +69,7 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
             'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
     add_action( 'wpcf_postmeta_after_add_repetitive',
             'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
-    
+
     // Fix to set correct parent and children for duplicated posts
     add_action( 'icl_make_duplicate', 'wpcf_wpml_duplicated_post_relationships',
             20, 4);
@@ -81,7 +77,7 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
 
 /**
  * Adds wpml_action property.
- * 
+ *
  * @param type $fields
  * @return array
  */
@@ -94,7 +90,7 @@ function wpcf_wpml_fields_filter( $fields ) {
 
 /**
  * Adds wpml_action property.
- * 
+ *
  * @global type $iclTranslationManagement
  * @param type $field
  * @return array
@@ -129,7 +125,7 @@ function wpcf_wpml_field_filter( $field ) {
 
 /**
  * Returns WPML action by field type.
- * 
+ *
  * @param type $type
  * @return type
  */
@@ -151,24 +147,37 @@ function wpcf_wpml_init() {
 
 /**
  * WPML translate call.
- * 
- * @param type $name
- * @param type $string
- * @return type 
+ *
+ * @param string $name name of translated string
+ * @param mixed $string value to translate, but process only strings
+ * @param string $context context of translation
+ * @return string translated string
  */
-function wpcf_translate( $name, $string, $context = 'plugin Types' ) {
-    if ( !function_exists( 'icl_t' ) || !is_string($string) || empty($string) ) {
+function wpcf_translate( $name, $string, $context = 'plugin Types' )
+{
+    /**
+     * do not translate if $string is not a string or is empty
+     */
+    if ( empty($string) || !is_string($string) ) {
         return $string;
     }
-    return icl_t( $context, $name, stripslashes( $string ) );
+    /**
+     * translate
+     */
+    return apply_filters(
+        'wpml_translate_single_string',
+        stripslashes( $string ),
+        $context,
+        $name
+    );
 }
 
 /**
  * Registers WPML translation string.
- * 
+ *
  * @param type $context
  * @param type $name
- * @param type $value 
+ * @param type $value
  */
 function wpcf_translate_register_string( $context, $name, $value,
         $allow_empty_value = false ) {
@@ -180,7 +189,7 @@ function wpcf_translate_register_string( $context, $name, $value,
 
 /**
  * Relationship filter get_children query.
- * 
+ *
  * @param type $_query string for get_posts()
  * @param type $parent Parent
  * @param type $post_type Children post type
@@ -202,9 +211,9 @@ function wpcf_wpml_relationship_get_children_query( $query, $parent, $post_type,
 
 /**
  * WPML editor filter
- * 
+ *
  * @param type $cf_name
- * @return type 
+ * @return type
  */
 function wpcf_icl_editor_cf_name_filter( $cf_name ) {
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
@@ -225,10 +234,10 @@ function wpcf_icl_editor_cf_name_filter( $cf_name ) {
 
 /**
  * WPML editor filter
- * 
+ *
  * @param type $cf_name
  * @param type $description
- * @return type 
+ * @return type
  */
 function wpcf_icl_editor_cf_description_filter( $description, $cf_name ) {
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
@@ -250,10 +259,10 @@ function wpcf_icl_editor_cf_description_filter( $description, $cf_name ) {
 
 /**
  * WPML editor filter
- * 
+ *
  * @param type $cf_name
  * @param type $style
- * @return type 
+ * @return type
  */
 function wpcf_icl_editor_cf_style_filter( $style, $cf_name ) {
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
@@ -278,7 +287,7 @@ function wpcf_icl_editor_cf_style_filter( $style, $cf_name ) {
 }
 
 /**
- * Bulk translation. 
+ * Bulk translation.
  */
 function wpcf_admin_bulk_string_translation() {
     if ( !function_exists( 'icl_register_string' ) ) {
@@ -373,13 +382,13 @@ function wpcf_admin_bulk_string_translation() {
     }
 
     // Register types
-    $custom_types = get_option( 'wpcf-custom-types', array() );
+    $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     foreach ( $custom_types as $post_type => $data ) {
         wpcf_custom_types_register_translation( $post_type, $data );
     }
 
     // Register taxonomies
-    $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+    $custom_taxonomies = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
     foreach ( $custom_taxonomies as $taxonomy => $data ) {
         wpcf_custom_taxonimies_register_translation( $taxonomy, $data );
     }
@@ -412,9 +421,11 @@ function wpcf_post_relationship_set_translated_children( $parent_post_id ) {
 
                 global $wpdb;
 
-                $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key= %s AND meta_value= %d";
-                $original_children = $wpdb->get_col( $wpdb->prepare( $query,
-                                $meta_key, $original_post_id ) );
+                $query = sprintf(
+                    'SELECT post_id FROM %s WHERE meta_key= %%s AND meta_value= %%d',
+                    $wpdb->postmeta
+                );
+                $original_children = $wpdb->get_col( $wpdb->prepare( $query, $meta_key, $original_post_id ) );
 
                 foreach ( $original_children as $child_id ) {
 
@@ -483,13 +494,13 @@ function wpcf_post_relationship_set_translated_parent( $child_post_id ) {
 
 /**
  * Returns translated '_wpcf_belongs_XXX_id' if any.
- * 
+ *
  * @global type $sitepress
  * @param type $value
  * @param type $object_id
  * @param type $meta_key
  * @param type $single
- * @return type 
+ * @return type
  */
 function wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
         $meta_key, $single ) {
@@ -520,7 +531,7 @@ function wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
                         } else {
                             $value = array($meta_translated_id);
                         }
-                        
+
                     }
                 }
             }
@@ -532,7 +543,7 @@ function wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
 
 /**
  * Adjust translated IDs.
- * 
+ *
  * @global type $sitepress
  * @param type $parent_post_id
  */
@@ -584,9 +595,9 @@ function wpcf_wpml_relationship_save_post_hook( $parent_post_id ){
 
 /**
  * Registers translation data.
- * 
+ *
  * @param type $post_type
- * @param type $data 
+ * @param type $data
  */
 function wpcf_custom_types_register_translation( $post_type, $data ) {
     if ( !function_exists( 'icl_register_string' ) ) {
@@ -601,9 +612,9 @@ function wpcf_custom_types_register_translation( $post_type, $data ) {
 
 /**
  * Registers translation data.
- * 
+ *
  * @param type $post_type
- * @param type $data 
+ * @param type $data
  */
 function wpcf_custom_taxonimies_register_translation( $taxonomy, $data ) {
     if ( !function_exists( 'icl_register_string' ) ) {
@@ -618,7 +629,7 @@ function wpcf_custom_taxonimies_register_translation( $taxonomy, $data ) {
 
 /**
  * Registers labels.
- * 
+ *
  * @param type $prefix
  * @param type $data
  * @param type $context
@@ -668,9 +679,9 @@ function wpcf_wpml_register_labels( $prefix, $data, $context = 'post' ) {
 
 /**
  * Translates data.
- * 
+ *
  * @param type $post_type
- * @param type $data 
+ * @param type $data
  */
 function wpcf_wpml_post_types_translate( $data, $post_type ) {
     if ( !function_exists( 'icl_t' ) ) {
@@ -700,9 +711,9 @@ function wpcf_wpml_post_types_translate( $data, $post_type ) {
 
 /**
  * Translates data.
- * 
+ *
  * @param type $taxonomy
- * @param type $data 
+ * @param type $data
  */
 function wpcf_wpml_taxonomy_translate( $data, $taxonomy ) {
     if ( !function_exists( 'icl_t' ) ) {
@@ -732,10 +743,10 @@ function wpcf_wpml_taxonomy_translate( $data, $taxonomy ) {
 
 /**
  * Filters terms on Group form filter.
- * 
+ *
  * Do not complicate this, just replace term ID
  * with corresponding original ID.
- * 
+ *
  * @param array $terms array of terms objects.
  * @return array
  */
@@ -758,7 +769,7 @@ function wpcf_wpml_group_form_filter_terms_filter( $terms ) {
             // Only if translation found
             if ( $term->term_id != $original_term_id ) {
                 /*
-                 * 
+                 *
                  * Note that WPML will return term_id.
                  */
                 $_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = %s AND t.term_id = %d LIMIT 1",
@@ -791,9 +802,9 @@ function wpcf_wpml_group_form_filter_terms_filter( $terms ) {
 
 /**
  * Adjusts term_id in group filter in post edit screen.
- * 
+ *
  * @global type $sitepress
- * @global type $wpdb
+ * @global object $wpdb
  * @param type $group
  * @return type
  */
@@ -844,11 +855,11 @@ function wpcf_wpml_post_group_filter_taxonomies( $group, $post, $context,
 
 /**
  * Append missing terms from saved filter.
- * 
+ *
  * If terms are added in another language and still valid,
  * append them as 'hidden' fields. That way we keep terms in sync if swithing
  * languages in admin area.
- * 
+ *
  * @global type $wpcf
  * @param type $form
  * @param type $settings
@@ -870,7 +881,7 @@ function wpcf_wpml_group_filter_add_missing_terms( $form, $settings ) {
                 }
                 /*
                  * Check if term is filtered out, but existing in saved option
-                 * and if it's not translated already. 
+                 * and if it's not translated already.
                  */
                 if ( !isset( $wpcf->wpml->group_form_filter_taxonomies_filtered[$term_taxonomy_id] ) ) {
                     $_add = true;
@@ -904,7 +915,7 @@ function wpcf_wpml_group_filter_add_missing_terms( $form, $settings ) {
 
 /**
  * Sync when slug changed.
- * 
+ *
  * @global type $sitepress
  * @global type $sitepress_settings
  * @param type $new_slug
@@ -934,7 +945,7 @@ function wpcf_wpml_post_type_renamed( $new_slug, $old_slug ) {
 
 /**
  * Sync when slug changed.
- * 
+ *
  * @global type $sitepress
  * @global type $sitepress_settings
  * @param type $new_slug
@@ -960,24 +971,24 @@ function wpcf_wpml_taxonomy_renamed( $new_slug, $old_slug ) {
 
 /**
  * Relationship save child language.
- * 
+ *
  * @global type $sitepress
  * @param type $child
  * @param type $parent
  */
-function wpcf_wpml_relationship_save_child( $child, $parent ) {
-    global $sitepress;
-    $lang_details = $sitepress->get_element_language_details( $parent->ID,
-            'post_' . $parent->post_type );
-    if ( $lang_details ) {
-        $sitepress->set_element_language_details( $child->ID,
-                'post_' . $child->post_type, null, $lang_details->language_code );
+function wpcf_wpml_relationship_save_child( $child, $parent )
+{
+    $lang_details = apply_filters('wpml_post_language_details', null, $parent->ID);
+    if ( ! $lang_details ) {
+        global $sitepress;
+        //Here we still need to create an action, so we have to stick with this dependency for the time being
+        $sitepress->set_element_language_details( $child->ID, 'post_' . $child->post_type, null, $lang_details->language_code );
     }
 }
 
 /**
  * Checks if field is copied on post edit screen.
- * 
+ *
  * @global type $sitepress
  * @param type $field
  * @param type $post
@@ -994,7 +1005,7 @@ function wpcf_wpml_field_is_copied( $field, $post = null ) {
 
 /**
  * Checks if field is copied on profile edit screen.
- * 
+ *
  * @global type $sitepress
  * @param type $field
  * @return boolean
@@ -1011,7 +1022,7 @@ function wpcf_wpml_is_translated_profile_page( $field ) {
 
 /**
  * Checks if field is copied.
- * 
+ *
  * @param type $field
  * @return type
  */
@@ -1022,7 +1033,7 @@ function wpcf_wpml_field_is_copy( $field ) {
 
 /**
  * Checks if field is translated.
- * 
+ *
  * @param type $field
  * @return type
  */
@@ -1033,7 +1044,7 @@ function wpcf_wpml_field_is_translated( $field ) {
 
 /**
  * Checks if field is ignored.
- * 
+ *
  * @param type $field
  * @return type
  */
@@ -1044,7 +1055,7 @@ function wpcf_wpml_field_is_ignored( $field ) {
 
 /**
  * Determine if post is in original language.
- * 
+ *
  * @global type $sitepress
  * @global type $pagenow
  * @param type $field
@@ -1057,7 +1068,7 @@ function wpcf_wpml_post_is_original( $post = null ) {
         // WPML There is no lang on new post
         if ( $pagenow == 'post-new.php' ) {
             $post_type = wpcf_admin_get_edited_post_type();
-            $current_lang = isset( $_GET['lang'] ) ? $_GET['lang'] : $sitepress->get_current_language();
+            $current_lang = isset( $_GET['lang'] ) ? sanitize_text_field( $_GET['lang'] ) : $sitepress->get_current_language();
             if ( in_array( $post_type,
                             array_keys( $sitepress->get_translatable_documents() ) ) ) {
                 return $sitepress->get_default_language() == $current_lang;
@@ -1089,12 +1100,12 @@ function wpcf_wpml_have_original( $post = null ) {
     static $cache = array();
     global $pagenow;
     $res = false;
-    
+
     // WPML There is no lang on new post
     if ( $pagenow == 'post-new.php' ) {
         return isset( $_GET['trid'] );
     }
-    
+
     if ( empty( $post->ID ) ) {
         $post = wpcf_admin_get_edited_post();
     }
@@ -1107,11 +1118,17 @@ function wpcf_wpml_have_original( $post = null ) {
         $post_lang = $sitepress->get_element_language_details( $post->ID,
                 'post_' . $post->post_type );
         if ( isset( $post_lang->language_code ) ) {
-            $sql = "SELECT trid FROM {$wpdb->prefix}icl_translations
-                WHERE language_code = '{$post_lang->language_code}'
-                AND element_id = {$post->ID}
-                AND element_type = 'post_{$post->post_type}'
-                AND source_language_code IS NOT NULL";
+
+            $sql = $wpdb->prepare(
+                "SELECT trid FROM {$wpdb->prefix}icl_translations
+                WHERE language_code = %s
+                AND element_id = %d
+                AND element_type = %s
+                AND source_language_code IS NOT NULL",
+                $post_lang->language_code,
+                $post->ID,
+                sprintf('post_%s', $post->post_type)
+            );
             $res = (bool) $wpdb->get_var( $sql );
         }
         $cache[$cache_key] = $res;
@@ -1121,7 +1138,7 @@ function wpcf_wpml_have_original( $post = null ) {
 
 /**
  * Removes temporarily hook to avoid deleting custom fields from translated post.
- * 
+ *
  * @global type $sitepress
  * @param type $post
  * @param type $field
@@ -1135,7 +1152,7 @@ function wpcf_wpml_remove_delete_postmeta_hook_remove( $post, $field ) {
 
 /**
  * Re-enables hook.
- * 
+ *
  * @see wpcf_wpml_remove_delete_postmeta_hook_remove()
  * @global type $sitepress
  * @param type $post
@@ -1150,7 +1167,7 @@ function wpcf_wpml_remove_delete_postmeta_hook_add( $post, $field ) {
 
 /**
  * Removes temporarily hook to fix asving repetitive fields.
- * 
+ *
  * @global type $sitepress
  * @param type $post
  * @param type $field
@@ -1169,7 +1186,7 @@ function wpcf_wpml_sync_postmeta_hook_remove( $post, $field ) {
 
 /**
  * Re-enables hook.
- * 
+ *
  * @see wpcf_wpml_remove_delete_postmeta_hook_remove()
  * @global type $sitepress
  * @param type $post
@@ -1194,7 +1211,7 @@ function wpcf_wpml_warnings_init()
      * check is configuration done?!
      */
     global $sitepress, $sitepress_settings;
-    if ( icl_get_setting('st') ) {
+    if ( function_exists('icl_get_setting') && icl_get_setting('st') ) {
         return;
     }
 

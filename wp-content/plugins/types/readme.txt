@@ -1,17 +1,17 @@
-=== Types - Custom Fields and Custom Post Types Management ===
+=== Types ===
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai, iworks
 Donate link: http://wp-types.com
-Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
+Tags: CMS, custom field, custom fields, custom post type, custom post types, field, fields post, post type, post types, taxonomies, taxonomy
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 4.1.1
-Stable tag: 1.6.5.1
+Tested up to: 4.3.1
+Stable tag: 1.8.7.1
 
-The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
+The complete and reliable plugin for managing custom post types, custom taxonomies and custom fields.
 
 == Description ==
 
-Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
+Types let's you customize the WordPress admin by adding content types, custom fields and taxonomies. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
 [vimeo http://vimeo.com/112053938]
 
@@ -67,12 +67,12 @@ Types includes support for a wide list of custom fields.
 
 Types custom fields use the standard WordPress post-meta table, making it cross-compatible with any theme or plugin. Additionally, all fields can be **repeating fields**.
 
-= CUSTOM POST TYPES AND TAXONOMY =
+= CUSTOM POST TYPES AND TAXONOMIES =
 
-Types lets you easily setup custom post types and taxonomy. You can create new post types in seconds and use the advanced settings to customize every aspect.
+Types lets you easily setup custom post types and taxonomies. You can create new post types in seconds and use the advanced settings to customize every aspect.
 
 * Full control over every feature
-* Associate taxonomy with custom post types
+* Associate taxonomies with custom post types
 * Integrated control over custom fields display for different post types
 
 = BUILD RELATIONAL SITES =
@@ -112,7 +112,7 @@ Sure you can! Types, by itself, replaces several other plugins that define custo
 
 If you also buy Views, with Toolset, you'll have a complete solution for both **defining** and **displaying** custom data. You can achieve everything that Views does if you're fluent in PHP and know WordPress API. When you buy Views, you're also supporting Types development, but we're not looking for donations. You should consider Views for its value and nothing else.
 
-= I am already a ninje developer, do I really need Views? =
+= I am already a ninja developer, do I really need Views? =
 
 We honestly think so. Even if you're an expert developer, do you really enjoy doing the same stuff over and over again? With Views, you can concentrate on the unique features of every new site that you build, without wasting time on routine stuff.
 
@@ -126,7 +126,7 @@ Go to Custom fields control, under the Types menu. There, you can tell Types to 
 
 = How do I migrate an existing site to use Types? =
 
-The most important thing is to remember not to define custom post types and taxonomy in more than one place. If you previously defined them in PHP, first, remove your PHP code with the manual definition. The content will appear to temporarily vanish. Don't panic. Now, redefine the same custom post types and taxonomy with Types. Everything will return :-)
+The most important thing is to remember not to define custom post types and taxonomies in more than one place. If you previously defined them in PHP, first, remove your PHP code with the manual definition. The content will appear to temporarily vanish. Don't panic. Now, redefine the same custom post types and taxonomies with Types. Everything will return :-)
 
 Types also includes data import from other plugins such as Custom Post UI and Advanced Custom Fields.
 
@@ -134,7 +134,7 @@ Types also includes data import from other plugins such as Custom Post UI and Ad
 
 Yes! Types includes its own import and export features, using an XML settings file. If you create a development site, you can easily transfer settings to the production site.
 
-= What is the advantage of using Types over separate plugins for custom post types, taxonomy and fields? =
+= What is the advantage of using Types over separate plugins for custom post types, taxonomies and fields? =
 
 Types offers a much richer integration, which is simply impossible with separate plugins. For example, you have fine-grained control of where to display custom meta-boxes. Because Types defines both the post types and fields, we have greater control of where things can go.
 
@@ -143,22 +143,246 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Screenshots ==
 
-1. Defining custom post types and taxonomy
-2. Defining custom fields (meta-groups)
-3. Editing custom fields
-4. Inserting custom fields to content
-5. Bulk editing child content using Field Tables
-6. Edit Custom Post Type
-7. Edit Taxonomy
+1. Post types list
+2. Custom taxonomies list
+3. Edit Custom Post Type
+4. Edit Taxonomy
+5. Editing custom fields group
+6. Editing user fields group
+7. Inserting custom fields to content
+8. Bulk editing child content using Field Tables
+9. Children post list
 
 == Changelog ==
+
+= 1.8.7.1 =
+
+* Release date: 2015-10-20
+* Add check to do not translate if value to translate is empty or not a string.
+
+= 1.8.7 =
+
+* Release date: 2015-10-18
+* Fixed a problem with shortcode playlist.
+* Fixed a problem with backslash in WYSIWYG field name.
+* Improve WPML integration, replace `icl_t()` by filter `wpml_translate_single_string`.
+* Change Installer version to 1.6.7 - to reduce requests to Toolset API.
+
+= 1.8.6.2 =
+
+* Release date: 2015-09-29
+* Fixed a problem with "Feature Image".
+* Fixed a problem with loading parent data in child table.
+
+= 1.8.6.1 =
+
+* Release date: 2015-09-28
+* Fixed a problem with get_plugins() function is some Installer actions.
+
+= 1.8.6 =
+
+* Release date: 2015-09-28
+* Replace parameter "numberposts" with "posts_per_page" in post relationships query.
+* Fixed a meta post data before use and if is too complex just do not handle this in Types.
+* Fixed a problem with selecting file in child tabele when is no WYSIWYG or other file field on edit screen.
+* When we get User Group we added information about affected roles.
+* Fixed a problem with playlist.
+
+= 1.8.5 =
+
+* Release date: 2015-09-02
+* Fixed a problem with display post parent in post children table after pagination.
+* Fixed a problem with display post parent in post children table after sorting.
+
+= 1.8.4 =
+
+* Release date: 2015-09-01
+* Fixed a problem with display post parent in post children table after pagination.
+* Fixed a problem with some AJAX action (can't add new field, can't choose child fields, etc. etc.)
+
+= 1.8.3 =
+
+* Release date: 2015-08-31
+* Fixed a problem with saving child posts when author role is "Author".
+
+= 1.8.2 =
+
+* Release date: 2015-08-27
+* Fixed a problem with selecting child post Events from Event Calendar when evens are "expired".
+
+= 1.8.1 =
+
+* Release date: 2015-08-25
+* Fixed a problem with select2 and new child posts.
+
+= 1.8 =
+
+* Release date: 2015-08-17
+* Added the ability to choose Custom Field as a column for Posts and Pages.
+* Added the ability to select the Feature image in the child Post table.
+* Added the ability to turn off the standard WordPress Custom Fields metabox.
+* Added default value to a Custom Field.
+* Added an "Edit" button for the parent post on the child Post editing page.
+* Added an error message for Custom Fields in children entries.
+* Added a new filter “wpcf_config_options_(type)”.
+* Added "ico" file type as a proper image file.
+* Added "parent" keyword into the list of reserved words for Custom Post Type or Custom Taxonomy name.
+* Added "select2" options script in parent Post field.
+* Changed "View template" string to "Content Template" in order to avoid inconsistencies.
+* Added a check for Custom Fields in order to display only active ones in lists.
+* Fixed a problem about the visibility of Types button in Post edit screen editor, when there are User Fields groups but no Custom Fields groups available.
+* Fixed a problem about the Module Manager box.
+* Fixed a problem with the usage of "dashboard_glance_items" filter.
+* Fixed a problem about alternative text and title of repetitive image fields.
+* Fixed a problem about lost translation when a parent Post was saved (https://wpml.org/forums/topic/custom-post-type-relationships/).
+* Fixed a conflict of validation field with CRED plugin.
+* Removed "Styling Editor" section in Custom Fields groups and User Fields groups edit screen. In order to enable it again, you can define “TYPES_USE_STYLING_EDITOR” constant in wp-config.php file.
+* Improved Module Manager box in Custom Post Type and Custom Taxonomy edit screen.
+* Moved marketing message into the "Need Help?" tab.
+* Reviewed "Add New" buttons in all edit screens for consistency.
+* Removed the "auto-import" option.
+* Turned off migration from "Advanced Custom Fields Pro", as this plugin has different data structure than "Advanced Custom Fields".
+* Updated list of Font Awesome icons.
+* Updated Skype field according to the new Skype Buttons API.
+
+= 1.7.11 =
+
+* Release date: 2015-08-05
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.10 =
+
+* Release date: 2015-08-04
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.9 =
+
+* Release date: 2015-08-04
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.8 =
+
+* Release date: 2015-08-03
+* Fixed WYSIWYG field for WP 4.2.3 security release.
+* Added HTML frontend rendering settings.
+
+= 1.7.7 =
+
+* Release date: 2015-07-21
+* Fixed a problem with the Getting Started tutorials.
+
+= 1.7.6 =
+
+* Release date: 2015-07-20
+* Change Installer version to 1.6.4 - to reduce load time and avoid to much update requests.
+
+= 1.7.6 =
+
+* Release date: 2015-07-20
+* Change Installer version to 1.6.4 - to reduce load time and avoid to much update requests.
+
+= 1.7.5 =
+
+* Release date: 2015-07-15
+* Fixed a problem with Custom Fields Group edit screen to allow (again) underscore in Custom Fields names. https://wp-types.com/forums/topic/underscores-in-custom-field-names-possible-bug/
+
+= 1.7.4 =
+
+* Release date: 2015-07-09
+* Change Installer version to 1.6.1
+
+= 1.7.3 =
+
+* Release date: 2015-06-25
+* Fixed problem with "View All" in menu builder for Custom Post Types. https://wp-types.com/forums/topic/appearance-menu-php-errornotice/
+
+= 1.7.2 =
+
+* Release date: 2015-06-23
+* Field a problem with "file type" field on post edit screen when is no WYSIWYG editor. https://wordpress.org/support/topic/image-field-not-working-1
+
+= 1.7.1 =
+
+* Release date: 2015-06-22
+* Fixed a problem with constant ICL_SITEPRESS_VERSION https://wordpress.org/support/topic/types-17-notice-undefined-constant-icl_sitepress_version
+* Field a problem with "file type" field on user profile screen. https://wordpress.org/support/topic/image-field-not-working-1
+* Types and Access integration - You can define roles and control who can add, edit or change Custom Post Types, Custom Taxonomies, Custom Field Groups and User Meta Groups.
+
+= 1.7 =
+
+* Release date: 2015-06-15
+* Added the word "mode" to the list of words reserved by WordPress. https://wp-types.com/forums/topic/when-types-is-activated-i-cant-filter-articles-by-category-in-the-wp-backend/
+* Added the feature that automatically creates a slug for the Custom Post Type and Custom Taxonomy.
+* Added bulk delete options to Custom Field Groups listing page.
+* Added bulk delete options to Custom Post Types listing page.
+* Added bulk delete options to Custom Taxonomies listing page.
+* Added the automatic check of availability for the "Title" and "Editor" fields in the child relationship dialog.
+* Added the duplicate option for Custom Post Type and Custom Taxonomy.
+* Added the "Excerpt" field to the Child Posts table.
+* Added the "wpcf_field_image_max_width" filter which allows user to change image width on admin listing pages.
+* Added the option to specify the custom archive slug for the Custom Post Type http://wp-types.com/forums/topic/specify-cpt-archive-slug-as-string/
+* All custom fields on Custom Post Type listing pages are now sortable.
+* Changes to the Types fields GUI for easier support.
+* Fixed a problem with Custom Post Type, Custom Taxonomy and Custom Fields Group editing pages where forms would "freeze" after validation fails.
+* Fixed a problem with selecting an image for the Custom Image Field in the Child Posts table, after using the "Add New", "Save All" and "Save" buttons.  https://wp-types.com/forums/topic/featured-image-cannot-be-changed-after-first-save/
+* Fixed a problem with multi-line field not being wrapped with P (paragraph) HTML tag https://wp-types.com/forums/topic/multi-line-text-fields-are-missing-paragraph-tags/
+* Fixed problem with fields being covered by colorbox on the Custom Post Type editing page.
+* Fixed an issue where a wrong message was displayed when minimum number of characters has not been reached.
+
+= 1.6.6.6 =
+
+* Release date: 2015-06-10
+* Fixed problem with "playlist" word.  https://wp-types.com/forums/topic/front-end-warning-from-wysiwyg-php/
+
+= 1.6.6.5 =
+
+* Release date: 2015-05-20
+* Fixed problem with Uncaught ReferenceError: pagenow is not defined. http://wp-types.com/forums/topic/nextgen-gallery-broken-urgent/
+
+= 1.6.6.4 =
+
+* Release date: 2015-05-12
+* Fixed problem Export/Import for CPT with custom fields.
+
+= 1.6.6.3 =
+
+* Release date: 2015-04-27
+* Fixed problem with Commercial tab on Install new Plugin Page.
+
+= 1.6.6.2 =
+
+* Release date: 2015-04-10
+* Fixed problem with File Field which do not work when edited from the Parent Post Type. https://wp-types.com/forums/topic/1-6-6-seems-to-break-child-fields-when-parent-has-an-image-field/
+
+= 1.6.6.1 =
+
+* Release date: 2015-04-03
+* Fixed problem with archive page for custom post type.
+
+= 1.6.6 =
+
+* Release date: 2015-04-02
+* Fixed problem with shortcode "playlist" used in WYSIWYG field. http://wp-types.com/forums/topic/media-play-list-not-outputting-from-custom-wysiwyg-field-js-error/
+* Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
+* Added ability to create CPT without title and editor. https://wp-types.com/forums/topic/inaccurate-warning-message-when-creatingediting-a-cpt/
+* Added Skype field validation.
+* Fixed problem with loading custom CSS when user meta group is inactive or not assign to certain user role.
+* Added ability to add to menu link to archive of post type.
+* Added ability to setup meta box callback function. https://wp-types.com/forums/topic/add-support-for-meta_box_cb-in-custom-taxonomy/
+* Added ability to add HTML5 placeholder attribute for custom post fields.
+* Fixed problem with CPT labels. https://wp-types.com/forums/topic/after-save-cpts-cutom-labels-always-revert-to-default-label/
+* Added a filters to the post title as option text in the select dropdown for post parents. wpcf_pr_belongs_items for array of options and wpcf_pr_belongs_item for one option. https://wp-types.com/forums/topic/help-to-distinguish-duplicate-titles-in-post-relationship/
+* Added ability to choose custom fields to display it on custom posts admin list.
+* Fixed problem with saving parent data into child data. On parent edit screen.
+* Added check group name for Custom Fields and User Fields.
+* Fixed missing "Edit" button on group edit screen when we close custom logic form.
 
 = 1.6.5.1 =
 
 * Release date: 2015-02-24
-* Fix Installer patch to plugins.
-* Fix problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
-* Change utm_media used in links on "Getting Started" pages.
+* Fixed Installer patch to plugins.
+* Fixed problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
+* Changed utm_media used in links on "Getting Started" pages.
 
 = 1.6.5 =
 
@@ -180,7 +404,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 = 1.6.4 =
 
 * Release date: 2014-11-17
-* Fixed an issue with dependency between custom taxonomy and custom posts when importing data from the "Custom Post Type UI" plugin.
+* Fixed an issue with dependency between custom taxonomies and custom posts when importing data from the "Custom Post Type UI" plugin.
 * Fixed an issue with editing checkboxes with the option "save 0 to the database" selected, created for Custom Posts. http://wp-types.com/forums/topic/checkbox-custom-field-doesnt-save-value-since-upgrade-to-version-1-6-2/ http://wp-types.com/forums/topic/types-checkbox-field-not-saving-after-save-0-to-the-database/
 * Fixed an issue with PHP notices being thrown when relative URLs to images were used. http://wp-types.com/forums/topic/php-notice-undefined-index-host-in-image-php/
 * Fixed the example file which adds the Google Map field to Types and allows users to enter coordinates to display a map on the front-end.

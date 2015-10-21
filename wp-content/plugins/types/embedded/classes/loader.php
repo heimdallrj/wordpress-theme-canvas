@@ -3,16 +3,12 @@
  *
  * Loader class
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/classes/loader.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 
 /**
  * Loader Class
- * 
+ *
  * @since Types 1.2
  * @package Types
  * @subpackage Classes
@@ -25,7 +21,7 @@ class WPCF_Loader
 
     /**
      * Settings
-     * @var array 
+     * @var array
      */
     private static $__settings = array();
 
@@ -34,15 +30,56 @@ class WPCF_Loader
         self::__registerScripts();
         self::__registerStyles();
         self::__toolset();
-        add_action( 'admin_print_scripts',
-                array('WPCF_Loader', 'renderJsSettings'), 5 );
+        add_action( 'admin_print_scripts', array('WPCF_Loader', 'renderJsSettings'), 5 );
 		add_filter( 'the_posts', array('WPCF_Loader', 'wpcf_cache_complete_postmeta') );
+		add_filter( 'wpcf_fields_postmeta_value_save', array( 'WPCF_Loader', 'wpcf_sanitize_postmeta_values_on_save' ) );
+		add_filter( 'wpcf_fields_usermeta_value_save', array( 'WPCF_Loader', 'wpcf_sanitize_usermeta_values_on_save' ) );
     }
-    
+	
+	/**
+	* Sanitize fields values on save
+	*
+	*/
+	
+	public static function wpcf_sanitize_postmeta_values_on_save( $value ) {
+		if (
+			current_user_can( 'unfiltered_html' ) 
+			&& wpcf_get_settings('postmeta_unfiltered_html') != 'off'
+		) {
+			return $value;
+		}
+		if ( is_array( $value ) ) {
+			// Recursion
+			$value = array_map( array( 'WPCF_Loader', 'wpcf_sanitize_postmeta_values_on_save' ), $value );
+		} else {
+			$value = wp_filter_post_kses( $value );
+		}
+		return $value;
+	}
+	
+	public static function wpcf_sanitize_usermeta_values_on_save( $value ) {
+		if (
+			current_user_can( 'unfiltered_html' ) 
+			&& wpcf_get_settings('usermeta_unfiltered_html') != 'off'
+		) {
+			return $value;
+		}
+		if ( is_array( $value ) ) {
+			// Recursion
+			$value = array_map( array( 'WPCF_Loader', 'wpcf_sanitize_usermeta_values_on_save' ), $value );
+		} else {
+			$value = wp_filter_post_kses( $value );
+		}
+		return $value;
+	}
+
     /**
-    * Cache the postmeta for posts returned by a WP_Query
-    */
-    
+     * Cache the postmeta for posts returned by a WP_Query
+     *
+     * @global object $wpdb
+     *
+     */
+
     public static function wpcf_cache_complete_postmeta( $posts ) {
 		global $wpdb;
 		if ( !$posts )
@@ -54,7 +91,7 @@ class WPCF_Loader
 			$cache_key_looped_post = md5( 'post::_is_cached' . $post->ID );
 			$cached_object = wp_cache_get( $cache_key_looped_post, $cache_group_ids );
 			if ( false === $cached_object ) {
-				$post_ids[] = $post->ID;
+				$post_ids[] = intval( $post->ID );
 				wp_cache_add( $cache_key_looped_post, $post->ID, $cache_group_ids );
 			}
 		}
@@ -150,7 +187,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $view
      * @param mixed $data
      * @return string
@@ -171,7 +208,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $view
      * @param mixed $data
      * @return string
@@ -187,7 +224,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -208,7 +245,7 @@ class WPCF_Loader
 
     /**
      * Loads model.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -224,7 +261,7 @@ class WPCF_Loader
 
     /**
      * Loads class.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -240,7 +277,7 @@ class WPCF_Loader
 
     /**
      * Loads include.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -256,7 +293,7 @@ class WPCF_Loader
 
     /**
      * Adds JS settings.
-     * 
+     *
      * @staticvar array $settings
      * @param type $id
      * @param type $setting

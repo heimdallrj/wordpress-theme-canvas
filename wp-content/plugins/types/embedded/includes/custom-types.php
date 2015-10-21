@@ -3,10 +3,6 @@
  *
  * Custom Post Types embedded code.
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/includes/custom-types.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 add_action( 'wpcf_type', 'wpcf_filter_type', 10, 2 );
@@ -85,9 +81,18 @@ function wpcf_custom_types_default() {
  * Inits custom types.
  */
 function wpcf_custom_types_init() {
-    $custom_types = get_option( 'wpcf-custom-types', array() );
+    $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     if ( !empty( $custom_types ) ) {
         foreach ( $custom_types as $post_type => $data ) {
+            if ( empty($data) ) {
+                continue;
+            }
+            if (
+                ( isset($data['_builtin']) && $data['_builtin'] )
+                || wpcf_is_builtin_post_types($post_type)
+            ) {
+                continue;
+            }
             wpcf_custom_types_register( $post_type, $data );
         }
     }
@@ -200,38 +205,38 @@ function wpcf_custom_types_register( $post_type, $data ) {
         $data['permalink_epmask'] = constant( $data['permalink_epmask'] );
     }
 
-    $args = register_post_type( $post_type,
-            apply_filters( 'wpcf_type', $data, $post_type ) );
+    /**
+     * set default support options
+     */
+    $support_fields = array(
+        'editor' => false,
+        'author' => false,
+        'thumbnail' => false,
+        'excerpt' => false,
+        'trackbacks' => false,
+        'custom-fields' => false,
+        'comments' => false,
+        'revisions' => false,
+        'page-attributes' => false,
+        'post-formats' => false,
+    );
+    $data['supports'] = array_merge_recursive( $data['supports'], $support_fields );
+
+    /**
+     * custom slug for has_archive
+     */
+    if (
+        isset($data['has_archive'])
+        && $data['has_archive']
+        && isset($data['has_archive_slug'])
+        && $data['has_archive_slug']
+    ) {
+        $data['has_archive'] = $data['has_archive_slug'];
+    }
+
+    $args = register_post_type( $post_type, apply_filters( 'wpcf_type', $data, $post_type ) );
 
     do_action( 'wpcf_type_registered', $args );
-
-    /*
-     * Since Types 1.2
-     * We do not encourage plural and singular names to be same.
-     */
-    $wpcf->post_types->set( $post_type, $data );
-    if ( $wpcf->post_types->check_singular_plural_match() ) {
-        if ( is_admin() ) {
-//            wpcf_admin_message_dismiss( $post_type . 'warning_singular_plural_match',
-//                    $wpcf->post_types->message( 'warning_singular_plural_match' )
-//            );
-        }
-    }
-
-    // Add the standard tags and categoires if the're set.
-    $body = '';
-    if ( in_array( 'post_tag', $data['taxonomies'] ) ) {
-        $body = 'register_taxonomy_for_object_type("post_tag", "' . $post_type . '");';
-    }
-    if ( in_array( 'category', $data['taxonomies'] ) ) {
-        $body .= 'register_taxonomy_for_object_type("category", "' . $post_type . '");';
-    }
-
-    // make sure the function name is OK
-    $post_type = str_replace( '-', '_', $post_type );
-    if ( $body != '' ) {
-        add_action( 'init', create_function('', $body ));
-    }
 }
 
 /**
@@ -289,7 +294,7 @@ function wpcf_filter_type( $data, $post_type ) {
  * @return type 
  */
 function wpcf_get_active_custom_types() {
-    $types = get_option('wpcf-custom-types', array());
+    $types = get_option(WPCF_OPTION_NAME_CUSTOM_TYPES, array());
     foreach ($types as $type => $data) {
         if (!empty($data['disabled'])) {
             unset($types[$type]);
@@ -297,3 +302,51 @@ function wpcf_get_active_custom_types() {
     }
     return $types;
 }
+
+/** This action is documented in wp-admin/includes/dashboard.php */
+add_filter('dashboard_glance_items', 'wpcf_dashboard_glance_items');
+
+/**
+ * Add CPT info to "At a Glance"
+ *
+ * Add to "At a Glance" WordPress admin dashboard widget information
+ * about number of posts.
+ *
+ * @since 1.6.6
+ *
+ */
+function wpcf_dashboard_glance_items($elements)
+{
+    $custom_types = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
+    if ( empty( $custom_types ) ) {
+        return $elements;
+    }
+    ksort($custom_types);
+    foreach ( $custom_types as $post_type => $data ) {
+        if ( !isset($data['dashboard_glance']) || !$data['dashboard_glance']) {
+            continue;
+        }
+        if ( isset($data['disabled']) && $data['disabled'] ) {
+            continue;
+        }
+        $num_posts = wp_count_posts($post_type);
+        $num = number_format_i18n($num_posts->publish);
+        $text = _n( $data['labels']['singular_name'], $data['labels']['name'], intval($num_posts->publish) );
+        $elements[] = sprintf(
+            '<a href="%s"%s>%d %s</a>',
+            esc_url(
+                add_query_arg(
+                    array(
+                        'post_type' => $post_type,
+                    ),
+                    admin_url('edit.php')
+                )
+            ),
+            isset($data['icon'])? sprintf('class="dashicons-%s"', $data['icon']):'',
+            $num,
+            $text
+        );
+    }
+    return $elements;
+}
+

@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/common/toolset-forms/classes/class.select.php $
- * $LastChangedDate: 2014-11-18 06:47:25 +0000 (Tue, 18 Nov 2014) $
- * $LastChangedRevision: 1027712 $
- * $LastChangedBy: iworks $
  *
  */
 require_once 'class.field_factory.php';
@@ -43,14 +39,23 @@ class WPToolset_Field_Select extends FieldFactory
                 $options[] = $one_option_data;
             }
         }
-        $options = apply_filters( 'wpt_field_options', $options, $this->getTitle(), 'select' );
+
+        /**
+         * for user fields we reset title and description to avoid double 
+         * display
+         */
+        $title = $this->getTitle();
+        if ( empty($title) ) {
+            $title = $this->getTitle(true);
+        }
+        $options = apply_filters( 'wpt_field_options', $options, $title, 'select' );
         /**
          * default_value
          */
         if ( !empty( $value ) || $value == '0' ) {
             $data['default_value'] = $value;
         }
-        
+
         $is_multiselect = array_key_exists('multiple', $attributes) && 'multiple' == $attributes['multiple'];
         $default_value = isset( $data['default_value'] ) ? $data['default_value'] : null;
         //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189219391/comments

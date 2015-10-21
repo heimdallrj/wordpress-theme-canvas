@@ -23,8 +23,7 @@ function wpcf_admin_userprofile_init($user_id){
 	$user_role = isset($user_id->roles) ? array_shift($user_id->roles) : 'subscriber';
 	$groups = wpcf_admin_usermeta_get_groups_fields();
 	$wpcf_active = false;
-	$profile_only_preview = '';
-
+    $profile_only_preview = '';
 
     foreach ( $groups as $group ) {
         if ( !empty( $group['fields'] ) ) {
@@ -98,6 +97,7 @@ function wpcf_admin_userprofile_init($user_id){
                         if ( isset( $config['validation']['required'] ) ) {
                             $config['title'] .= '&#42;';
                         }
+                        $config['_title'] = $config['title'];
                         $output .= '
 <div class="wpcf-profile-field-line">
 	<div class="wpcf-profile-line-left">
@@ -154,15 +154,15 @@ function wpcf_admin_userprofile_init($user_id){
                 WPCF_EMBEDDED_RES_RELPATH . '/js/'
                 . 'jquery-form-validation/additional-methods.min.js',
                 array('jquery'), WPCF_VERSION );
-        wp_enqueue_style( 'wpcf-fields-basic',
+        wp_enqueue_style( 'wpcf-css-embedded',
                 WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(),
                 WPCF_VERSION );
         wp_enqueue_style( 'wpcf-fields-post',
                 WPCF_EMBEDDED_RES_RELPATH . '/css/fields-post.css',
-                array('wpcf-fields-basic'), WPCF_VERSION );
+                array('wpcf-css-embedded'), WPCF_VERSION );
 		wp_enqueue_style( 'wpcf-usermeta',
                 WPCF_EMBEDDED_RES_RELPATH . '/css/usermeta.css',
-                array('wpcf-fields-basic'), WPCF_VERSION );
+                array('wpcf-css-embedded'), WPCF_VERSION );
         wpcf_enqueue_scripts();
 		wpcf_field_enqueue_scripts( 'date' );
 		wpcf_field_enqueue_scripts( 'image' );
@@ -201,7 +201,7 @@ function wpcf_usermeta_preview_profile( $user_id, $group, $echo = ''){
 
 	foreach ( $fields as $field ) {
 		$html = '';
-		$params['post_type'] = 'wp-types-user-group';
+		$params['post_type'] = TYPES_USER_META_FIELD_GROUP_CPT_NAME;
 		$params['option_name'] = 'wpcf-usermeta';
 		$params['separator'] = ', ';
 		if ( wpcf_admin_is_repetitive( $field ) ) {
@@ -700,12 +700,14 @@ function wpcf_admin_render_fields( $group, $user_id, $echo = '') {
  * @param type $post_ID
  * @return type
  */
-function wpcf_admin_usermeta_get_groups_fields() {
-	$post = array();
+function wpcf_admin_usermeta_get_groups_fields()
+{
+    wpcf_enqueue_scripts();
+    $post = array();
     // Filter groups
     $groups = array();
 
-    $groups_all =  wpcf_admin_fields_get_groups('wp-types-user-group');
+    $groups_all =  wpcf_admin_fields_get_groups(TYPES_USER_META_FIELD_GROUP_CPT_NAME);
 
     foreach ( $groups_all as $temp_key => $temp_group ) {
         if ( empty( $temp_group['is_active'] ) ) {
@@ -717,7 +719,7 @@ function wpcf_admin_usermeta_get_groups_fields() {
             unset( $groups_all[$temp_key] );
         } else {
             $groups_all[$temp_key]['fields'] = wpcf_admin_fields_get_fields_by_group( $temp_group['id'],
-                    'slug', true, false, true, 'wp-types-user-group', 'wpcf-usermeta');
+                'slug', true, false, true, TYPES_USER_META_FIELD_GROUP_CPT_NAME, 'wpcf-usermeta');
         }
     }
     $groups = $groups_all;

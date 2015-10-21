@@ -2,10 +2,6 @@
 /*
  * Custom Fields Control Screen
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/includes/fields-control.php $
- * $LastChangedDate: 2015-01-16 14:28:15 +0000 (Fri, 16 Jan 2015) $
- * $LastChangedRevision: 1069430 $
- * $LastChangedBy: iworks $
  *
  */
 require_once ABSPATH . '/wp-admin/includes/class-wp-list-table.php';
@@ -25,7 +21,11 @@ function wpcf_admin_custom_fields_control_form($table) {
  */
 class WPCF_Custom_Fields_Control_Table extends WP_List_Table
 {
-
+    /**
+     *
+     * @global object $wpdb
+     *
+     */
     function prepare_items() {
         global $wpdb;
         $wpcf_per_page = 15;
@@ -119,10 +119,14 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
             $sorted_keys = array();
             $new_array = array();
             foreach ($cf_types as $cf_id_temp => $cf_temp) {
-                $sorted_keys[$cf_temp['id']] = strtolower( $cf_temp[$sort_matches[$_REQUEST['orderby']]] );
+                if ( isset($sort_matches[$_REQUEST['orderby']]) ) {
+                    $sorted_keys[$cf_temp['id']] = strtolower( $cf_temp[$sort_matches[$_REQUEST['orderby']]] );
+                } else {
+                    $sorted_keys[$cf_temp['id']] = strtolower( $cf_temp[$sort_matches['c']] );
+                }
             }
             asort($sorted_keys, SORT_STRING);
-            if ($_REQUEST['order'] == 'desc') {
+            if ('desc' == $_REQUEST['order']) {
                 $sorted_keys = array_reverse($sorted_keys, true);
             }
             foreach ($sorted_keys as $cf_id_temp => $groups_txt) {
@@ -221,8 +225,7 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
             $add = '&nbsp;<span style="color:red;">(' . __("disabled", 'wpcf') . ')</span>';
         }
         if (!empty($item['data']['disabled_by_type'])) {
-            $add = '<br /><span style="color:red;">(' . __("This field was disabled during conversion. You need to set some further settings in the group editor.",
-                            'wpcf') . ')</span>';
+            $add = '<br /><span style="color:red;">(' . __("This field was disabled during conversion. You need to set some further settings in the group editor.", 'wpcf') . ')</span>';
             if (isset($item['groups']) && sizeof($item['groups'])) {
                 $add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit&group_id=' . key( $item['groups'] ) ) . '">' . __('Edit',
                                 'wpcf') . '</a>';
@@ -237,22 +240,35 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
         $actions['wpcf-remove-from-group-bulk'] = __('Remove from group', 'wpcf');
         $actions['wpcf-change-type-bulk'] = __('Change type', 'wpcf');
         $actions['wpcf-activate-bulk'] = __("Add to Types control", 'wpcf');
-        $actions['wpcf-deactivate-bulk'] = __("Stop controlling with Types",
-                'wpcf');
+        $actions['wpcf-deactivate-bulk'] = __("Stop controlling with Types", 'wpcf');
         $actions['wpcf-delete-bulk'] = __("Delete", 'wpcf');
         return $actions;
     }
 
-    function view_switcher($current_mode = '') {
-        echo '<div style="clear:both; margin: 20px 0 10px 0; float: right;"><a class="button button-secondary" href="';
+    function view_switcher($current_mode = '')
+    {
+        $display = 0;
+        $text = __('Show pagination', 'wpcf');
         if (empty($_GET['display_all'])) {
-            echo esc_url($_SERVER['REQUEST_URI']) . '&amp;display_all=1">' . __('Display all items',
-                    'wpcf');
-        } else {
-            echo esc_url($_SERVER['REQUEST_URI']) . '&amp;display_all=0">' . __('Show pagination',
-                    'wpcf');
+            $display = 1;
+            $text = __('Display all items', 'wpcf');
         }
-        echo '</a></div>';
+        $url = esc_url(
+            add_query_arg(
+                array(
+                    'page' => 'wpcf-custom-fields-control',
+                    'display_all' => $display,
+                ),
+                admin_url('admin.php')
+            )
+        );
+        echo '<div style="clear:both; margin: 20px 0 10px 0; float: right;">';
+        printf(
+            '<a class="button button-secondary" href="%s">%s</a>',
+            $url,
+            $text
+        );
+        echo '</div>';
     }
 
 }
@@ -297,8 +313,7 @@ function wpcf_admin_custom_fields_control_js()
             }
             if (action == 'wpcf-delete-bulk') {
                 var answer = confirm('<?php
-    _e('Deleting fields will remove fields from groups and delete post meta. Continue?',
-            'wpcf')
+    _e('Deleting fields will remove fields from groups and delete post meta. Continue?', 'wpcf')
 
     ?>');
                 if (answer){
@@ -316,10 +331,18 @@ function wpcf_admin_custom_fields_control_js()
 /**
  * Submitted Bulk actions.
  */
-function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
+function wpcf_admin_custom_fields_control_bulk_actions($action = '')
+{
+    if (
+        !isset($_POST['_wpnonce'])
+        || !wp_verify_nonce($_POST['_wpnonce'], 'custom_fields_control_bulk')
+    ) {
+        return;
+    }
     if ($action == 'wpcf-deactivate-bulk') {
         $fields = wpcf_admin_fields_get_fields(false, true);
         foreach ($_POST['fields'] as $field_id) {
+			$field_id = sanitize_text_field( $field_id );
             if (isset($fields[$field_id])) {
                 $fields[$field_id]['data']['disabled'] = 1;
                 wpcf_admin_message_store(sprintf(__('Removed from Types control: %s',
@@ -332,7 +355,6 @@ function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
         $fields_bulk = wpcf_types_cf_under_control('add',
                 array('fields' => $_POST['fields']));
         foreach ($fields_bulk as $field_id) {
-//            if (isset($fields[$field_id]) && empty($fields[$field_id]['data']['disabled_by_type'])) {
             if (isset($fields[$field_id])) {
                 $fields[$field_id]['data']['disabled'] = 0;
             }
@@ -345,6 +367,7 @@ function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
         $failed = array();
         $success = array();
         foreach ($_POST['fields'] as $field_id) {
+            $field_id = sanitize_text_field( $field_id );
             $response = wpcf_admin_fields_delete_field($field_id);
             if (!$response) {
                 $failed[] = str_replace('_' . md5('wpcf_not_controlled'), '',
@@ -367,7 +390,17 @@ function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
             );
         }
     }
-    wp_redirect($_SERVER['REQUEST_URI']);
+    wp_safe_redirect(
+        esc_url_raw(
+            add_query_arg(
+                array(
+                    'page' => 'wpcf-custom-fields-control',
+                    'display_all' => isset($_REQUEST['display_all'])? 1:0,
+                ),
+                admin_url('admin.php')
+            )
+        )
+    );
     die();
 }
 
@@ -380,8 +413,9 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
     }
     if (!empty($_POST)) {
         if (!empty($_POST['groups']) && !empty($_POST['fields'])) {
-            $action = isset($_POST['wpcf_action_control']) ? $_POST['wpcf_action_control'] : 'wpcf-add-to-group-bulk';
+            $action = isset($_POST['wpcf_action_control']) ? sanitize_text_field( $_POST['wpcf_action_control'] ) : 'wpcf-add-to-group-bulk';
             foreach ($_POST['groups'] as $group_id) {
+				$group_id = sanitize_text_field( $group_id );
                 switch ($action) {
                     case 'wpcf-add-to-group-bulk':
                         wpcf_admin_fields_save_group_fields($group_id,
@@ -399,7 +433,7 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
             }
         } else if (!empty($_POST['type']) && !empty($_POST['fields'])) {
             wpcf_admin_custom_fields_change_type($_POST['fields'],
-                    $_POST['type']);
+                    sanitize_text_field( $_POST['type'] ));
         }
         echo '<script type="text/javascript">
             window.parent.jQuery("#TB_closeWindowButton").click();
@@ -427,6 +461,7 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
         die('Not valid action');
     }
     foreach ($_GET['fields'] as $field_id) {
+		$field_id = sanitize_text_field( $field_id );
         $output[$field_id] = array(
             '#type' => 'hidden',
             '#name' => 'fields[]',
@@ -436,7 +471,7 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
     $output['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
-        '#value' => __('Save Changes'),
+        '#value' => __('Save Changes', 'wpcf'),
         '#attributes' => array('class' => 'button-primary'),
     );
     echo '<form method="post" action="">';
@@ -450,7 +485,7 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
 
 /**
  * Change type dropdown.
- * 
+ *
  * @return array Form array
  */
 function wpcf_admin_custom_fields_control_change_type_dropdown() {

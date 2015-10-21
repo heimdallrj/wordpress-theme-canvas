@@ -1,25 +1,43 @@
 <?php
 
+function wpcf_admin_fields_get_active_fields_by_post_type($post_type)
+{
+    $custom_fields = array();
+    $groups = wpcf_admin_fields_get_groups(TYPES_CUSTOM_FIELD_GROUP_CPT_NAME, true, true);
+    if ( empty($groups) ) {
+        return $custom_fields;
+    }
+    foreach ($groups as $group) {
+        $types = wpcf_admin_get_post_types_by_group($group['id']);
+        if ( !empty($types) && !in_array($post_type, $types) ) {
+            continue;
+        }
+        if (isset($group['fields'])) {
+            $custom_fields += $group['fields'];
+        }
+    }
+    return $custom_fields;
+}
+
+
 /**
  * Gets all groups.
  *
- * @global type $wpdb
  * @param string $post_type
  * @param boolean|string $only_active
  * @param boolean|string $add_fields - 'field_active', 'field_all', false (to omitt fields)
- * @return type
+ * @return array array of custom fields definition
  */
-function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
-        $only_active = false, $add_fields = false ) {
+function wpcf_admin_fields_get_groups( $post_type = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME, $only_active = false, $add_fields = false ) {
     $cache_group = 'types_cache_groups';
-	$cache_key = md5( 'group::_get_group' . $post_type );
-	$cached_object = wp_cache_get( $cache_key, $cache_group );
+    $cache_key = md5( 'group::_get_group' . $post_type );
+    $cached_object = wp_cache_get( $cache_key, $cache_group );
     if ( false === $cached_object ) {
-		$groups = get_posts( 'numberposts=-1&post_type=' . $post_type . '&post_status=null' );
-		wp_cache_add( $cache_key, $groups, $cache_group );
-	} else {
-		$groups = $cached_object;
-	}
+        $groups = get_posts( 'numberposts=-1&post_type=' . $post_type . '&post_status=null' );
+        wp_cache_add( $cache_key, $groups, $cache_group );
+    } else {
+        $groups = $cached_object;
+    }
     $_groups = array();
     if ( !empty( $groups ) ) {
         foreach ( $groups as $k => $group ) {
@@ -38,11 +56,12 @@ function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
  *
  * Since 1.2 we enabled fetching by post title.
  *
- * @global type $wpdb
- * @param type $group_id
- * @return type
+ * @param $group_id
+ * @param string $post_type
+ * @param bool $add_fields
+ * @return array
  */
-function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
+function wpcf_admin_fields_get_group( $group_id, $post_type = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
         $add_fields = false ) {
     $group = get_post( $group_id );
     if ( empty( $group->ID ) ) {
@@ -60,8 +79,9 @@ function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
 /**
  * Converts post data.
  *
- * @param type $post
- * @return type
+ * @param $post
+ * @param bool $add_fields
+ * @return array
  */
 function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
     if ( empty( $post ) ) {
@@ -75,14 +95,30 @@ function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
     $group['meta_box_context'] = 'normal';
     $group['meta_box_priority'] = 'high';
     $group['is_active'] = $post->post_status == 'publish' ? true : false;
-    $group['filters_association'] = get_post_meta( $post->ID,
-            '_wp_types_group_filters_association', true );
+    $group['filters_association'] = get_post_meta( $post->ID, '_wp_types_group_filters_association', true );
+    $group[WPCF_AUTHOR] = $post->post_author;
+
+    /**
+     * add _wp_types_group_showfor
+     *
+     * "all" - for all groups
+     * array() - if any
+     */
+    if ( TYPES_USER_META_FIELD_GROUP_CPT_NAME == $post->post_type ) {
+        $data = get_post_meta($post->ID, '_wp_types_group_showfor', true);
+        if ( 'all' != $data ) {
+            $data = array_values(array_filter(explode(',',$data)));
+        }
+        if ( empty($data) ) {
+            $data = 'all';
+        }
+        $group['_wp_types_group_showfor'] = $data;
+    }
 
     // Attach fields if required (since 1.3)
     if ( $add_fields ) {
         $active = $add_fields == 'fields_active' ? true : false;
-        $group['fields'] = wpcf_admin_fields_get_fields_by_group( $post->ID,
-                'slug', $active );
+        $group['fields'] = wpcf_admin_fields_get_fields_by_group( $post->ID, 'slug', $active );
     }
 
     return $group;
@@ -91,20 +127,23 @@ function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
 /**
  * Gets Fields Admin Styles supported by specific group.
  *
- * @global type $wpdb
  * @param type $group_id
  * @return type
  */
-function wpcf_admin_get_groups_admin_styles_by_group( $group_id ) {
-    $admin_styles = get_post_meta( $group_id, '_wp_types_group_admin_styles',
-            true );
-    return trim( $admin_styles );
+function wpcf_admin_get_groups_admin_styles_by_group( $group_id )
+{
+    if (
+        defined('TYPES_USE_STYLING_EDITOR')
+        && TYPES_USE_STYLING_EDITOR
+    ) {
+        $admin_styles = get_post_meta( $group_id, '_wp_types_group_admin_styles', true );
+        return trim( $admin_styles );
+    }
 }
 
 /**
  * Saves group's admin styles
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $padmin_styles
  */
@@ -116,8 +155,15 @@ function wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_styles ) {
  * Gets all fields.
  *
  * @todo Move to WPCF_Fields
- * @global type $wpdb
+ * @param bool $only_active
+ * @param bool $disabled_by_type
+ * @param bool $strictly_active
+ * @param string $option_name
+ * @param bool $use_cache
+ * @param bool $clear_cache
  * @return type
+ *
+ * added param $use_cache by Gen (used when adding new fields to group)
  * added param $use_cache by Gen (used when adding new fields to group)
  */
 function wpcf_admin_fields_get_fields( $only_active = false,
@@ -187,14 +233,26 @@ function wpcf_admin_fields_get_fields( $only_active = false,
     return $cache[$cache_key];
 }
 
+function wpcf_admin_fields_get_field_by_meta_key( $meta_key )
+{
+    $fields = wpcf_admin_fields_get_fields();
+    foreach( $fields as $field) {
+        if ( $meta_key == $field['meta_key'] ) {
+            return $field;
+        }
+    }
+}
+
 /**
  * Gets field by ID.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
- * @param type $field_id
- * @param type $only_active
- * @return type
+ * @param string $field_id
+ * @param bool $only_active
+ * @param bool $disabled_by_type
+ * @param bool $strictly_active
+ * @param string $option_name
+ * @return array
  */
 function wpcf_admin_fields_get_field( $field_id, $only_active = false,
         $disabled_by_type = false, $strictly_active = false,
@@ -212,7 +270,6 @@ function wpcf_admin_fields_get_field( $field_id, $only_active = false,
  * Gets field by slug.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
  * @param type $slug
  * @return type
  */
@@ -220,10 +277,11 @@ function wpcf_fields_get_field_by_slug( $slug, $meta_name = 'wpcf-fields' ) {
     return wpcf_admin_fields_get_field( $slug, false, false, false, $meta_name );
 }
 
+add_filter('wpcf_fields_by_group', 'wpcf_admin_fields_get_fields_by_group', 10, 1);
+
 /**
  * Gets all fields that belong to specific group.
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $key
  * @param type $only_active
@@ -234,7 +292,7 @@ function wpcf_fields_get_field_by_slug( $slug, $meta_name = 'wpcf-fields' ) {
  */
 function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
         $only_active = false, $disabled_by_type = false,
-        $strictly_active = false, $post_type = 'wp-types-group',
+        $strictly_active = false, $post_type = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME,
         $meta_name = 'wpcf-fields', $use_cache = true ) {
     static $cache = array();
     $cache_key = md5( serialize( func_get_args() ) );
@@ -264,7 +322,6 @@ function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
 /**
  * Gets groups that have specific term.
  *
- * @global type $wpdb
  * @param type $term_id
  * @param type $fetch_empty
  * @param type $only_active
@@ -273,7 +330,7 @@ function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
 function wpcf_admin_fields_get_groups_by_term( $term_id = false,
         $fetch_empty = true, $post_type = false, $only_active = true ) {
     $args = array();
-    $args['post_type'] = 'wp-types-group';
+    $args['post_type'] = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME;
     $args['numberposts'] = -1;
     // Active
     if ( $only_active ) {
@@ -319,19 +376,21 @@ function wpcf_admin_fields_get_groups_by_term( $term_id = false,
     return $groups;
 }
 
+add_filter('wpcf_get_groups_by_post_type', 'wpcf_admin_get_groups_by_post_type', 10, 1);
+
 /**
  * Gets groups that have specific post_type.
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @param type $post_type
  * @param type $fetch_empty
  * @param type $only_active
  * @return type
  */
-function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
-        $terms = null, $only_active = true ) {
+function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true, $terms = null, $only_active = true )
+{
     $args = array();
-    $args['post_type'] = 'wp-types-group';
+    $args['post_type'] = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME;
     $args['numberposts'] = -1;
     // Active
     if ( $only_active ) {
@@ -377,23 +436,21 @@ function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
     // Distinct terms
     if ( !is_null( $terms ) ) {
         if ( !empty( $terms ) ) {
-//            $args['meta_query'] = array('relation' => 'OR');
             $terms_sql = array();
             $add = '';
             if ( $fetch_empty ) {
                 $add = " OR m.meta_value LIKE 'all'";
             }
             foreach ( $terms as $term ) {
-                $terms_sql[] = $term;
+                $terms_sql[] = esc_sql( $term );
             }
-            $terms_sql = "AND (m.meta_value LIKE '%%," . implode( ",%%' OR m.meta_value LIKE '%%,",
-                            $terms ) . ",%%' $add)";
+            $terms_sql = "AND (m.meta_value LIKE '%%," . implode( ",%%' OR m.meta_value LIKE '%%,", $terms_sql ) . ",%%' $add)";
             global $wpdb;
             $terms_sql = "SELECT * FROM $wpdb->posts p
-                    JOIN $wpdb->postmeta m
-                    WHERE p.post_type='wp-types-group' AND p.post_status='publish'
-                    AND p.ID = m.post_id AND m.meta_key='_wp_types_group_terms'
-                    $terms_sql";
+                JOIN $wpdb->postmeta m
+                WHERE p.post_type=".TYPES_CUSTOM_FIELD_GROUP_CPT_NAME." AND p.post_status='publish'
+                AND p.ID = m.post_id AND m.meta_key='_wp_types_group_terms'
+                $terms_sql";
             $groups = $wpdb->get_results( $terms_sql );
             if ( !empty( $groups ) ) {
                 foreach ( $groups as $key => $group ) {
@@ -415,7 +472,6 @@ function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
 /**
  * Gets groups that have specific template.
  *
- * @global type $wpdb
  * @param type $post_type
  * @param type $fetch_empty
  * @param type $only_active
@@ -424,7 +480,7 @@ function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
 function wpcf_admin_get_groups_by_template( $templates = array('default'),
         $fetch_empty = true, $only_active = true ) {
     $args = array();
-    $args['post_type'] = 'wp-types-group';
+    $args['post_type'] = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME;
     $args['numberposts'] = -1;
     $meta_query = array();
     // Active
@@ -566,15 +622,14 @@ function wpcf_admin_fields_get_available_types() {
 function wpcf_sanitize_field( $field ) {
     // Sanitize name
     if ( isset( $field['name'] ) ) {
-        $field['name'] = sanitize_text_field( $field['name'] );
+        $field['name'] = wp_kses_post( $field['name'] );
     }
     // Sanitize slug
     if ( !empty( $field['slug'] ) ) {
-        $field['slug'] = sanitize_title( $field['slug'] );
+        $field['slug'] = sanitize_key( $field['slug'] );
     } else if ( isset( $field['name'] ) ) {
         $field['slug'] = sanitize_title( $field['name'] );
     }
-
     return $field;
 }
 
@@ -585,10 +640,10 @@ function wpcf_sanitize_field( $field ) {
  * @param type $field_id
  */
 function wpcf_admin_fields_get_groups_by_field( $field_id,
-        $post_type = 'wp-types-group' ) {
+        $post_type = TYPES_CUSTOM_FIELD_GROUP_CPT_NAME ) {
     static $cache = array();
     $groups = wpcf_admin_fields_get_groups( $post_type );
-    $meta_name = ($post_type == 'wp-types-group' ? 'wpcf-fields' : 'wpcf-usermeta');
+    $meta_name = ($post_type == TYPES_CUSTOM_FIELD_GROUP_CPT_NAME ? 'wpcf-fields' : 'wpcf-usermeta');
     $return = array();
     foreach ( $groups as $group_id => $group ) {
         if ( isset( $cache['groups'][$group_id] ) ) {
@@ -636,3 +691,35 @@ function wpcf_admin_fields_get_field_last_settings( $field_id ) {
     }
     return array();
 }
+
+/**
+ * Get active fields by post type
+ *
+ * Get active fields by post type chosing it from active groups and this 
+ * groups which are connected to certain post type.
+ *
+ * @since: 1.7
+ *
+ * @param string $post_type custom post type
+ *
+ * @return array allowed meta keys
+ */
+function wpcf_admin_get_allowed_fields_by_post_type($post_type)
+{
+    $allowed_fields = $active_groups = array();
+    $all_groups = wpcf_admin_get_groups_by_post_type($post_type);
+    foreach( $all_groups as $group_id => $group_data ) {
+        $active_groups[] = $group_data['slug'];
+    }
+    $all_groups = wpcf_admin_fields_get_groups(TYPES_CUSTOM_FIELD_GROUP_CPT_NAME, true, true);
+    foreach( $all_groups as $group ) {
+        if ( !in_array($group['slug'], $active_groups) ) {
+            continue;
+        }
+        foreach( $group['fields'] as $field_key => $field_data ) {
+            $allowed_fields[] = $field_data['meta_key'];
+        }
+    }
+    return $allowed_fields;
+}
+

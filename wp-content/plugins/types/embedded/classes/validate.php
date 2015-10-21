@@ -246,6 +246,11 @@ class Wpcf_Validate
         return true;
     }
 
+    public static function skype( $args, $value )
+    {
+        return true;
+    }
+
     /**
      * Returns form data.
      * 
@@ -385,6 +390,29 @@ class Wpcf_Validate
 
         $form['number-message'] = self::get_custom_message( $field,
                         self::get_message( 'number' ), $data );
+        return $form;
+    }
+
+    /**
+     * Returns form data.
+     * 
+     * @param type $field
+     * @param type $data
+     * @return array
+     */
+    public static function skype_form( $field, $data = array() )
+    {
+        $form = array();
+        $form['skype-checkbox'] = array(
+            '#type' => 'checkbox',
+            '#title' => 'Skype',
+            '#name' => $field['#name'] . '[active]',
+            '#default_value' => isset( $data['active'] ) ? 1 : 0,
+            '#inline' => true,
+            '#suffix' => '<br />',
+        );
+        $form['skype-checkbox'] = self::setForced( $form['skype-checkbox'], $field, $data );
+        $form['skype-message'] = self::get_custom_message( $field, self::get_message( 'skype' ), $data );
         return $form;
     }
 

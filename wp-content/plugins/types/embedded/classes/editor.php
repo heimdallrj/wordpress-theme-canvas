@@ -168,8 +168,7 @@ class WPCF_Editor
             $this->_data['tabs']['display'] = array(
                 'menu_title' => __( 'Display', 'wpcf' ),
                 'title' => __( 'Display', 'wpcf' ),
-                'content' => sprintf( __( 'There are no additional display options for the %s field.',
-                                'wpcf' ),
+                'content' => sprintf( __( 'There are no additional display options for the %s field.', 'wpcf' ),
                         $this->_data['field_type_data']['title'] ),
             );
         }
@@ -284,8 +283,7 @@ class WPCF_Editor
                 /*
                  * Callback
                  */
-                $shortcode = call_user_func( $function, $_POST, $this->field,
-                        $this->_meta_type );
+                $shortcode = call_user_func( $function, $_POST, $this->field, $this->_meta_type );
             } else {
                 /*
                  * Generic
@@ -305,8 +303,7 @@ class WPCF_Editor
                  */
                 $shortcode = preg_replace( '@</?script[^>]*>@im', '', wp_kses_post($shortcode) );
                 // Add additional parameters if required
-                $shortcode = $this->_add_parameters_to_shortcode( $shortcode,
-                        $_POST );
+                $shortcode = $this->_add_parameters_to_shortcode( $shortcode, $_POST );
                 // Insert shortcode
                 echo '<script type="text/javascript">jQuery(function(){tedFrame.close(\''
                 . $shortcode . '\', \'' . esc_js( $shortcode ) . '\');});</script>';

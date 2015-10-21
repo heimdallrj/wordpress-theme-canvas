@@ -51,14 +51,13 @@ if( !function_exists('on_the_go_systems_branding_plugins_loaded') ) {
                 $latest = $key;
             }
         }
-        
         if ($latest > 0) {
             require_once $onthegosystems_branding_paths[$latest]['path'] . '/onthegosystems-branding-loader.php';
             ont_set_on_the_go_systems_uri_and_start( $onthegosystems_branding_paths[$latest]['url'] );
         }
     }
 
-    add_action( 'plugins_loaded', 'on_the_go_systems_branding_plugins_loaded');
+    add_action( 'after_setup_theme', 'on_the_go_systems_branding_plugins_loaded');
 }
 
 if( !function_exists('onthego_initialize') ) {

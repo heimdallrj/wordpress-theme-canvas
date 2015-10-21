@@ -1,18 +1,14 @@
 <?php
 /*
-  Plugin Name: Types Embeded - Complete Solution for Custom Fields and Types
+  Plugin Name: Types Embedded
   Plugin URI: http://wordpress.org/extend/plugins/types/
-  Description: Define custom post types, custom taxonomy and custom fields.
+  Description: Define custom post types, custom taxonomies and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: 1.6.5
+  Version: 1.8.7.1
  */
 /**
  *
- * $HeadURL: http://plugins.svn.wordpress.org/types/tags/1.6.5.1/embedded/plugin.php $
- * $LastChangedDate: 2015-02-10 17:10:42 +0000 (Tue, 10 Feb 2015) $
- * $LastChangedRevision: 1086547 $
- * $LastChangedBy: AmirHelzer $
  *
  */
 
@@ -55,7 +51,7 @@ function wpcf_embedded_deactivate_notice()
 ?>
     <div class="error">
         <p>
-            <?php _e( 'WP Types Embedded was <strong>deactivated</strong>! You are already running the complete WP Types plugin, so this one is not needed anymore.', 'wpcf' ); ?>
+            <?php _e( 'Types Embedded was <strong>deactivated</strong>! You are already running the complete Types plugin, so this one is not needed anymore.', 'wpcf' ); ?>
         </p>
     </div>
 <?php
